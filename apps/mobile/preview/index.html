@@ -992,8 +992,7 @@
       const DK = '#4e2a10';   // dark outline
       const LT = '#c88858';   // light brown
       const FL = '#f9dfc0';   // face / belly (warm cream)
-      const EW = '#fffff8';   // eye WHITE (very bright)
-      const EP = '#100808';   // eye pupil (very dark)
+      const EY = '#1a1030';   // eye (warm dark, not pure black)
       const EH = '#ffffff';   // eye sparkle highlight
       const MZ = '#f0b090';   // muzzle / snout area
       const NS = '#3c1408';   // nose
@@ -1025,42 +1024,39 @@
       row(7, [3,4,5,6,7,8,9,10], BR);
       px(11,7,BR); px(12,7,DK);
 
-      // ── EYES ──
-      // Each eye: 3×2 white sclera, 1×2 dark pupil in centre, 1×1 highlight top-left
-      // Left eye  (x 3-5, y 3-4)
-      rect(3, 3, 3, 2, EW);
-      px(4,3,EP); px(4,4,EP);
-      px(3,3,EH);   // sparkle
+      // ── EYES (속눈썹 + 작은 2×2 눈 + 반짝이) ──
+      // 흰자 없음 → 귀여운 픽셀 스타일
 
-      // Right eye (x 8-10, y 3-4)
-      rect(8, 3, 3, 2, EW);
-      px(9,3,EP); px(9,4,EP);
-      px(8,3,EH);   // sparkle
+      // 속눈썹: 눈 위에 작은 DK 픽셀
+      px(4,2,DK); px(5,2,DK);   // 왼쪽 속눈썹
+      px(8,2,DK); px(9,2,DK);   // 오른쪽 속눈썹
 
-      // Mood overrides
+      // 기본 눈: 2×2 따뜻한 어두운 색
+      // 왼쪽 눈 (x=4-5, y=3-4)
+      rect(4, 3, 2, 2, EY);
+      px(4, 3, EH);   // 반짝이 하이라이트 (왼쪽 위)
+
+      // 오른쪽 눈 (x=8-9, y=3-4)
+      rect(8, 3, 2, 2, EY);
+      px(8, 3, EH);   // 반짝이 하이라이트 (왼쪽 위)
+
+      // 무드별 눈 변화
       if (mood === 'sleepy') {
-        // half-lid: cover top half of eyes with lid colour
-        row(3, [3,4,5], LT);
-        row(3, [8,9,10], LT);
-        // droopy pupil stays at row 4
-        px(4,4,EP); px(9,4,EP);
+        // 졸린 눈: 위 절반을 피부색으로 덮어서 반쯤 감긴 효과
+        row(3, [4,5], FL);   // 왼쪽 눈 위 절반 가림
+        px(4,4,EY);          // 아래만 눈 남김
+        row(3, [8,9], FL);   // 오른쪽 눈 위 절반 가림
+        px(8,4,EY);
       }
       if (mood === 'happy') {
-        // arc (^ω^) style: bottom half is eyebrow shape
-        rect(3, 3, 3, 2, EW); // redraw white
-        px(3,3,EH);
-        px(4,3,EP); px(4,4,EP); // normal pupil
-        rect(8, 3, 3, 2, EW);
-        px(8,3,EH);
-        px(9,3,EP); px(9,4,EP);
-        // small blush extra pixel
+        // 기쁜 눈: 볼 블러시 추가
         px(2,4,CK); px(11,4,CK);
       }
       if (mood === 'excited') {
-        // star pupils - fill most of eye
-        rect(3, 3, 3, 2, EP); px(3,3,EH); px(5,4,EH);
-        rect(8, 3, 3, 2, EP); px(8,3,EH); px(10,4,EH);
-        px(2,4,CK); px(11,4,CK);
+        // 신난 눈: 대각선 반짝이 2개로 별눈 표현
+        px(4,3,EH); px(5,4,EH);   // 왼쪽 별눈
+        px(8,3,EH); px(9,4,EH);   // 오른쪽 별눈
+        px(2,4,CK); px(11,4,CK);  // 볼 블러시
       }
 
       // ── CHEEK BLUSH ──
