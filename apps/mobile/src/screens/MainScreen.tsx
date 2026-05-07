@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import {
   Image,
+  Modal,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
   type ViewStyle,
 } from 'react-native';
@@ -25,6 +28,14 @@ interface MainScreenProps {
   todaySummary?: TodayTransitSummary;
 }
 
+interface ChatMessage {
+  id: string;
+  role: 'titi' | 'user';
+  text: string;
+}
+
+const CHAT_API_URL = 'http://127.0.0.1:5173/api/chat';
+
 const UI_TEXT = {
   appName: '\uD2F0\uBA38\uB2C8 \uD2F0\uD2F0',
   title: '\uD2F0\uD2F0\uC640 \uD568\uAED8 \uC774\uB3D9 \uC911',
@@ -37,6 +48,10 @@ const UI_TEXT = {
   times: '\uD68C',
   stations: '\uAC1C \uC815\uAC70\uC7A5',
   places: '\uACF3',
+  chatButton: '\uD2F0\uD2F0\uC5D0\uAC8C \uBB3B\uAE30',
+  chatTitle: 'TITI CHAT',
+  chatPlaceholder: '\uD2F0\uD2F0\uC5D0\uAC8C \uBB3C\uC5B4\uBCF4\uAE30',
+  send: '\uC804\uC1A1',
   moods: {
     excited: '\uC2E0\uB0A8',
     sleepy: '\uC878\uB9BC',
@@ -73,6 +88,84 @@ export default function MainScreen({
   const progressPercent = Math.min(100, Math.max(0, progressRatio * 100));
   const titiImageSource = getTitiImageSource(displayPet.mood);
   const [isTitiImageVisible, setIsTitiImageVisible] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatText, setChatText] = useState('');
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: 'welcome',
+      role: 'titi',
+      text: '안녕! 오늘 이동 기록, 경험치, 보상, 하차 알림을 물어봐.',
+    },
+    {
+      id: 'sample-user',
+      role: 'user',
+      text: '오늘 얼마나 성장했어?',
+    },
+    {
+      id: 'sample-titi',
+      role: 'titi',
+      text: `오늘 +${todaySummary.gainedExp} EXP를 얻었어. 다음 보상도 금방이야.`,
+    },
+  ]);
+
+  async function askTiti(question: string) {
+    const trimmedQuestion = question.trim();
+    if (!trimmedQuestion) {
+      return;
+    }
+
+    const loadingId = `loading-${Date.now()}`;
+    setChatMessages((messages) => [
+      ...messages,
+      { id: `user-${Date.now()}`, role: 'user', text: trimmedQuestion },
+      { id: loadingId, role: 'titi', text: '티티가 생각 중...' },
+    ]);
+
+    try {
+      const response = await fetch(CHAT_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: trimmedQuestion,
+          context: {
+            level: displayPet.level,
+            todayExp: todaySummary.gainedExp,
+            todayRides: todaySummary.rideCount,
+            todayStations: todaySummary.movedStationCount,
+            todayTransfers: todaySummary.transferCount,
+            todayNewVisits: todaySummary.newStationVisitCount,
+          },
+        }),
+      });
+      const data = await response.json();
+      setChatMessages((messages) =>
+        messages.map((message) =>
+          message.id === loadingId
+            ? {
+                ...message,
+                text: response.ok
+                  ? data.reply
+                  : data.error || '지금은 티티가 대답하기 어려워.',
+              }
+            : message,
+        ),
+      );
+    } catch (error) {
+      setChatMessages((messages) =>
+        messages.map((message) =>
+          message.id === loadingId
+            ? { ...message, text: '네트워크 연결을 확인해줘. 티티가 잠깐 길을 잃었어.' }
+            : message,
+        ),
+      );
+    }
+  }
+
+  function sendChatMessage() {
+    const message = chatText;
+    setChatText('');
+    askTiti(message);
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -136,6 +229,14 @@ export default function MainScreen({
           <View style={styles.moodPill}>
             <Text style={styles.moodText}>{getMoodLabel(displayPet.mood)}</Text>
           </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={UI_TEXT.chatButton}
+            onPress={() => setIsChatOpen(true)}
+            style={styles.chatFab}
+          >
+            <Text style={styles.chatFabIcon}>💬</Text>
+          </Pressable>
         </View>
 
         <View style={styles.summarySection}>
@@ -164,6 +265,69 @@ export default function MainScreen({
           </View>
         </View>
       </ScrollView>
+
+      <Modal
+        animationType="slide"
+        transparent
+        visible={isChatOpen}
+        onRequestClose={() => setIsChatOpen(false)}
+      >
+        <Pressable style={styles.chatOverlay} onPress={() => setIsChatOpen(false)}>
+          <Pressable style={styles.chatSheet}>
+            <View style={styles.chatHeader}>
+              <Text style={styles.chatTitle}>{UI_TEXT.chatTitle}</Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setIsChatOpen(false)}
+                style={styles.chatCloseButton}
+              >
+                <Text style={styles.chatCloseText}>X</Text>
+              </Pressable>
+            </View>
+
+            <View style={styles.chatMessages}>
+              {chatMessages.map((message) => (
+                <View
+                  key={message.id}
+                  style={[
+                    styles.chatBubble,
+                    message.role === 'titi' ? styles.titiBubble : styles.userBubble,
+                  ]}
+                >
+                  <Text
+                    style={
+                      message.role === 'titi'
+                        ? styles.titiBubbleText
+                        : styles.userBubbleText
+                    }
+                  >
+                    {message.text}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            <View style={styles.chatSuggestionList}>
+              <ChatSuggestion label="오늘 이동 기록 알려줘" onPress={askTiti} />
+              <ChatSuggestion label="다음 보상 뭐야?" onPress={askTiti} />
+              <ChatSuggestion label="하차 알림 켜줘" onPress={askTiti} />
+            </View>
+
+            <View style={styles.chatInputRow}>
+              <TextInput
+                value={chatText}
+                onChangeText={setChatText}
+                placeholder={UI_TEXT.chatPlaceholder}
+                placeholderTextColor="#8EA19A"
+                style={styles.chatInput}
+              />
+              <Pressable style={styles.chatSendButton} onPress={sendChatMessage}>
+                <Text style={styles.chatSendText}>{UI_TEXT.send}</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -174,6 +338,20 @@ function MetricCard({ label, value }: { label: string; value: string }) {
       <Text style={styles.metricLabel}>{label}</Text>
       <Text style={styles.metricValue}>{value}</Text>
     </View>
+  );
+}
+
+function ChatSuggestion({
+  label,
+  onPress,
+}: {
+  label: string;
+  onPress: (label: string) => void;
+}) {
+  return (
+    <Pressable style={styles.chatSuggestion} onPress={() => onPress(label)}>
+      <Text style={styles.chatSuggestionText}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -563,6 +741,145 @@ const styles = StyleSheet.create({
     color: '#31564B',
     fontSize: 13,
     fontWeight: '800',
+  },
+  chatFab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1F7A63',
+    borderWidth: 2,
+    borderColor: '#DDF4EC',
+    shadowColor: '#31564B',
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  chatFabIcon: {
+    fontSize: 20,
+  },
+  chatOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(13, 24, 21, 0.46)',
+  },
+  chatSheet: {
+    maxHeight: '74%',
+    paddingTop: 14,
+    paddingHorizontal: 18,
+    paddingBottom: 18,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    backgroundColor: '#F7FAF8',
+  },
+  chatHeader: {
+    minHeight: 36,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  chatTitle: {
+    color: '#16231F',
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  chatCloseButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E5EFEA',
+  },
+  chatCloseText: {
+    color: '#31564B',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  chatMessages: {
+    marginTop: 16,
+  },
+  chatBubble: {
+    maxWidth: '84%',
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderRadius: 8,
+  },
+  titiBubble: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E8E4',
+  },
+  userBubble: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#1F7A63',
+  },
+  titiBubbleText: {
+    color: '#1B2B26',
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 20,
+  },
+  userBubbleText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+    lineHeight: 20,
+  },
+  chatSuggestionList: {
+    marginTop: 4,
+    gap: 8,
+  },
+  chatSuggestion: {
+    minHeight: 38,
+    justifyContent: 'center',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#EAF3EF',
+  },
+  chatSuggestionText: {
+    color: '#31564B',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  chatInputRow: {
+    minHeight: 46,
+    marginTop: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  chatInput: {
+    flex: 1,
+    height: 44,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    color: '#16231F',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#DCE7E2',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  chatSendButton: {
+    width: 58,
+    height: 44,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F0B84F',
+  },
+  chatSendText: {
+    color: '#4C3510',
+    fontSize: 14,
+    fontWeight: '900',
   },
   summarySection: {
     marginTop: 24,
