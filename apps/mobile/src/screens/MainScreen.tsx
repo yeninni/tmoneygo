@@ -178,9 +178,19 @@ export default function MainScreen({
             <Text style={styles.kicker}>{UI_TEXT.appName}</Text>
             <Text style={styles.title}>{UI_TEXT.title}</Text>
           </View>
-          <View style={styles.levelBadge}>
-            <Text style={styles.levelLabel}>LV</Text>
-            <Text style={styles.levelValue}>{displayPet.level}</Text>
+          <View style={styles.headerActions}>
+            <View style={styles.levelBadge}>
+              <Text style={styles.levelLabel}>LV</Text>
+              <Text style={styles.levelValue}>{displayPet.level}</Text>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={UI_TEXT.chatButton}
+              onPress={() => setIsChatOpen(true)}
+              style={styles.chatFab}
+            >
+              <Text style={styles.chatFabIcon}>💬</Text>
+            </Pressable>
           </View>
         </View>
 
@@ -229,14 +239,6 @@ export default function MainScreen({
           <View style={styles.moodPill}>
             <Text style={styles.moodText}>{getMoodLabel(displayPet.mood)}</Text>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={UI_TEXT.chatButton}
-            onPress={() => setIsChatOpen(true)}
-            style={styles.chatFab}
-          >
-            <Text style={styles.chatFabIcon}>💬</Text>
-          </Pressable>
         </View>
 
         <View style={styles.summarySection}>
@@ -418,6 +420,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   kicker: {
     color: '#21735A',
@@ -743,12 +749,10 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   chatFab: {
-    position: 'absolute',
-    right: 16,
-    bottom: 16,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 42,
+    height: 42,
+    marginLeft: 8,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#1F7A63',
