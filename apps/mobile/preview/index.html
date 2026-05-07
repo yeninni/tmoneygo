@@ -297,12 +297,15 @@
 
       /* ── Buttons ── */
       .chat-fab {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
         z-index: 20;
-        width: 30px;
-        height: 30px;
+        width: 34px;
+        height: 34px;
         padding: 0;
         font-family: 'DotGothic16', monospace;
-        font-size: 14px;
+        font-size: 16px;
         color: var(--maple-yellow);
         background: linear-gradient(180deg, #3a2808 0%, #1e1804 100%);
         border: var(--px) solid var(--maple-border);
@@ -836,7 +839,6 @@
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
           <button class="maple-btn gold" style="padding:5px 8px;font-size:9px" onclick="showSection('transit')">🚇 탑승</button>
-          <button class="chat-fab" onclick="openChatSheet()" title="티티에게 묻기" aria-label="티티에게 묻기">💬</button>
         </div>
       </div>
 
@@ -859,6 +861,7 @@
             <div class="otter-wrap" id="otterWrap" onclick="petInteract()" title="티티를 눌러보세요!">
               <canvas id="otterCanvas" width="84" height="120" style="image-rendering:pixelated"></canvas>
             </div>
+            <button class="chat-fab" onclick="openChatSheet()" title="티티에게 묻기" aria-label="티티에게 묻기">💬</button>
           </div>
 
           <!-- Today summary -->
