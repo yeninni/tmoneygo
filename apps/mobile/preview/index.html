@@ -971,113 +971,168 @@
     let selectedTransit = { type:'subway', exp:80, stations:12, transfer:false, newVisit:false };
 
     // ══════════════════════════════════
-    // Pixel Otter Canvas Renderer
+    // Pixel Otter Canvas Renderer (v2 - cute eyes!)
     // ══════════════════════════════════
     function drawOtter(mood) {
       const canvas = document.getElementById('otterCanvas');
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
-      const S = 6; // pixel size
+      const S = 6;
       ctx.clearRect(0, 0, 84, 120);
 
-      // Palette
-      const C = {
-        brown:  '#8b5e3c',
-        dark:   '#5c3a1e',
-        light:  '#d4956a',
-        belly:  '#f5d9b8',
-        eye:    '#1a0f0a',
-        nose:   '#3d1f10',
-        wink:   '#c07040',
-        white:  '#fffde8',
-      };
+      // px(x,y,c): fill one S×S grid cell
+      const px = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(x*S, y*S, S, S); };
+      // row(y, xs, c): fill multiple x positions in one row
+      const row = (y, xs, c) => xs.forEach(x => px(x, y, c));
+      // rect(x,y,w,h,c): fill a w×h block
+      const rect = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x*S, y*S, w*S, h*S); };
 
-      // Helper: draw pixel at grid (x,y) with color
-      function px(x, y, color) {
-        ctx.fillStyle = color;
-        ctx.fillRect(x * S, y * S, S, S);
+      // ── Palette ──
+      const BR = '#9a6845';   // body brown
+      const DK = '#4e2a10';   // dark outline
+      const LT = '#c88858';   // light brown
+      const FL = '#f9dfc0';   // face / belly (warm cream)
+      const EW = '#fffff8';   // eye WHITE (very bright)
+      const EP = '#100808';   // eye pupil (very dark)
+      const EH = '#ffffff';   // eye sparkle highlight
+      const MZ = '#f0b090';   // muzzle / snout area
+      const NS = '#3c1408';   // nose
+      const CK = '#f0908a';   // cheek blush (pink)
+      const MO = '#7a2010';   // mouth
+      const TB = '#2258cc';   // tmoney card blue
+      const TG = '#f0c828';   // tmoney card text
+
+      // ── EARS (rows 0-1) ──
+      row(0, [3,4,9,10], BR);
+      row(1, [2,3,4,5,8,9,10,11], BR);
+      row(0, [2,5,8,11], DK);
+      px(3,1,LT); px(10,1,LT); // inner ear light
+
+      // ── HEAD (rows 2-7) ──
+      // Row 2: top of head
+      row(2, [3,4,5,6,7,8,9,10], BR);
+      px(2,2,DK); px(11,2,DK);
+
+      // Rows 3-6: wide head with face patch
+      for (let y = 3; y <= 6; y++) {
+        px(1,y,DK); px(2,y,BR);
+        for (let x = 3; x <= 10; x++) px(x, y, FL);
+        px(11,y,BR); px(12,y,DK);
       }
 
-      // ── Body (14×20 grid, 1-indexed) ──
-      // Ears (top)
-      px(2,1,C.brown); px(3,1,C.brown); px(3,0,C.brown);
-      px(10,1,C.brown); px(11,1,C.brown); px(10,0,C.brown);
+      // Row 7: bottom of head / chin
+      px(1,7,DK); px(2,7,BR);
+      row(7, [3,4,5,6,7,8,9,10], BR);
+      px(11,7,BR); px(12,7,DK);
 
-      // Head rows 2–7
-      const headRow = [
-        [null,null,null,C.brown,C.brown,C.brown,C.brown,C.brown,C.brown,C.brown,C.brown,null,null,null],
-        [null,null,C.brown,C.brown,C.light,C.light,C.light,C.light,C.light,C.light,C.brown,C.brown,null,null],
-        [null,C.brown,C.brown,C.light,C.belly,C.belly,C.belly,C.belly,C.belly,C.light,C.brown,C.brown,C.brown,null],
-        [C.brown,C.brown,C.light,C.belly,C.belly,C.belly,C.belly,C.belly,C.belly,C.belly,C.light,C.brown,C.brown,C.brown],
-        [C.brown,C.brown,C.light,C.belly,C.belly,C.belly,C.belly,C.belly,C.belly,C.belly,C.light,C.brown,C.brown,C.brown],
-        [null,C.brown,C.brown,C.light,C.belly,C.belly,C.belly,C.belly,C.belly,C.light,C.brown,C.brown,C.brown,null],
-      ];
-      headRow.forEach((row, ri) => {
-        row.forEach((col, ci) => { if(col) px(ci, ri+2, col); });
-      });
+      // ── EYES ──
+      // Each eye: 3×2 white sclera, 1×2 dark pupil in centre, 1×1 highlight top-left
+      // Left eye  (x 3-5, y 3-4)
+      rect(3, 3, 3, 2, EW);
+      px(4,3,EP); px(4,4,EP);
+      px(3,3,EH);   // sparkle
 
-      // Eyes at row 4
-      if (mood === 'sleepy' || mood === 'happy') {
-        // wink/happy eyes (horizontal lines)
-        px(4,4,C.eye); px(4,5,C.eye);
-        px(9,4,C.eye); px(9,5,C.eye);
-        if (mood === 'happy') { px(5,4,C.eye); px(8,4,C.eye); }
-      } else {
-        px(4,4,C.eye); px(5,4,C.eye);
-        px(8,4,C.eye); px(9,4,C.eye);
+      // Right eye (x 8-10, y 3-4)
+      rect(8, 3, 3, 2, EW);
+      px(9,3,EP); px(9,4,EP);
+      px(8,3,EH);   // sparkle
+
+      // Mood overrides
+      if (mood === 'sleepy') {
+        // half-lid: cover top half of eyes with lid colour
+        row(3, [3,4,5], LT);
+        row(3, [8,9,10], LT);
+        // droopy pupil stays at row 4
+        px(4,4,EP); px(9,4,EP);
       }
-
-      // Nose row 5–6
-      px(5,5,C.nose); px(6,5,C.nose); px(7,5,C.nose); px(8,5,C.nose);
-      px(6,6,C.nose); px(7,6,C.nose);
-
-      // Mouth row 7
-      if (mood === 'happy' || mood === 'excited') {
-        px(5,7,C.nose); px(6,7,C.nose); px(7,7,C.nose); px(8,7,C.nose);
-        px(4,6,C.nose); px(9,6,C.nose);
-      } else {
-        px(5,7,C.nose); px(6,7,C.nose); px(7,7,C.nose); px(8,7,C.nose);
+      if (mood === 'happy') {
+        // arc (^ω^) style: bottom half is eyebrow shape
+        rect(3, 3, 3, 2, EW); // redraw white
+        px(3,3,EH);
+        px(4,3,EP); px(4,4,EP); // normal pupil
+        rect(8, 3, 3, 2, EW);
+        px(8,3,EH);
+        px(9,3,EP); px(9,4,EP);
+        // small blush extra pixel
+        px(2,4,CK); px(11,4,CK);
       }
-
-      // Body rows 8–14
-      const bodyRows = [
-        [null,null,C.brown,C.brown,C.brown,C.brown,C.brown,C.brown,C.brown,C.brown,C.brown,C.brown,null,null],
-        [null,C.brown,C.brown,C.belly,C.belly,C.belly,C.belly,C.belly,C.belly,C.belly,C.belly,C.brown,C.brown,null],
-        [null,C.brown,C.brown,C.belly,C.belly,C.belly,C.belly,C.belly,C.belly,C.belly,C.belly,C.brown,C.brown,null],
-        [null,C.brown,C.brown,C.belly,C.belly,C.belly,C.belly,C.belly,C.belly,C.belly,C.belly,C.brown,C.brown,null],
-        [null,null,C.brown,C.brown,C.belly,C.belly,C.belly,C.belly,C.belly,C.belly,C.brown,C.brown,null,null],
-        [null,null,null,C.brown,C.brown,C.brown,C.brown,C.brown,C.brown,C.brown,null,null,null,null],
-      ];
-      bodyRows.forEach((row, ri) => {
-        row.forEach((col, ci) => { if(col) px(ci, ri+8, col); });
-      });
-
-      // Arms
-      px(1,9,C.brown); px(0,10,C.brown); px(0,11,C.brown); px(1,11,C.light);
-      px(12,9,C.brown); px(13,10,C.brown); px(13,11,C.brown); px(12,11,C.light);
-
-      // Legs rows 14–15
-      px(3,14,C.brown); px(4,14,C.brown); px(3,15,C.dark); px(4,15,C.dark);
-      px(9,14,C.brown); px(10,14,C.brown); px(9,15,C.dark); px(10,15,C.dark);
-
-      // Tail row 13–14 (right side)
-      px(11,13,C.brown); px(12,13,C.brown); px(12,12,C.brown);
-      px(11,14,C.dark);
-
-      // Tmoney card on belly
-      ctx.fillStyle = '#3080e0';
-      ctx.fillRect(4*S+2, 10*S, 4*S-2, 3*S-1);
-      ctx.fillStyle = '#f0c040';
-      ctx.font = `${S-1}px monospace`;
-      ctx.fillText('T', 4*S+5, 12*S-1);
-
-      // Excited sparkles
       if (mood === 'excited') {
-        ctx.fillStyle = '#f0e020';
-        [[1,1],[12,2],[0,7],[13,7]].forEach(([x,y]) => {
-          ctx.fillRect(x*S, y*S, 3, 3);
-          ctx.fillRect(x*S+1, y*S-2, 1, 7);
-          ctx.fillRect(x*S-2, y*S+1, 7, 1);
+        // star pupils - fill most of eye
+        rect(3, 3, 3, 2, EP); px(3,3,EH); px(5,4,EH);
+        rect(8, 3, 3, 2, EP); px(8,3,EH); px(10,4,EH);
+        px(2,4,CK); px(11,4,CK);
+      }
+
+      // ── CHEEK BLUSH ──
+      px(2,5,CK); px(2,6,CK);
+      px(11,5,CK); px(11,6,CK);
+
+      // ── MUZZLE / SNOUT (rows 5-6 centre) ──
+      rect(5, 5, 4, 2, MZ);
+      // Nose (2×1 on top of muzzle)
+      px(6,5,NS); px(7,5,NS);
+
+      // ── MOUTH ──
+      if (mood === 'happy' || mood === 'excited') {
+        // ω-shape happy grin
+        row(7, [5,6,7,8], MO);
+        px(4,6,MO); px(9,6,MO);   // dimple corners up
+      } else if (mood === 'sleepy') {
+        row(7, [6,7], MO);         // tiny drowsy line
+      } else {
+        row(7, [5,6,7,8], MO);    // slight smile
+      }
+
+      // ── BODY (rows 8-14) ──
+      // Row 8: neck/shoulders
+      row(8, [3,4,5,6,7,8,9,10], BR);
+      px(2,8,DK); px(11,8,DK);
+
+      // Rows 9-11: wide body
+      for (let y = 9; y <= 11; y++) {
+        px(1,y,DK); px(2,y,BR);
+        rect(3, y, 8, 1, FL);
+        px(11,y,BR); px(12,y,DK);
+      }
+      // Rows 12-13: body narrows
+      for (let y = 12; y <= 13; y++) {
+        px(2,y,DK); px(3,y,BR);
+        rect(4, y, 6, 1, FL);
+        px(10,y,BR); px(11,y,DK);
+      }
+      // Row 14: hips
+      row(14, [3,4,5,6,7,8,9,10], BR);
+      px(2,14,DK); px(11,14,DK);
+
+      // ── ARMS ──
+      px(1,9,BR); px(0,10,BR); px(0,11,BR); px(1,12,LT);
+      px(12,9,BR); px(13,10,BR); px(13,11,BR); px(12,12,LT);
+
+      // ── LEGS & FEET ──
+      px(3,15,BR); px(4,15,BR); px(3,16,DK); px(4,16,DK);
+      px(9,15,BR); px(10,15,BR); px(9,16,DK); px(10,16,DK);
+      // webbed feet
+      row(17, [2,3,4,5], DK);
+      row(17, [8,9,10,11], DK);
+
+      // ── TAIL ──
+      px(12,12,BR); px(13,12,BR);
+      px(12,13,BR); px(13,13,LT);
+      px(11,14,BR);
+
+      // ── TMONEY CARD ──
+      rect(4, 10, 5, 3, TB);
+      ctx.fillStyle = TG;
+      ctx.font = 'bold 9px monospace';
+      ctx.fillText('T', 4*S+5, 12*S+2);
+
+      // ── EXCITED SPARKLES ──
+      if (mood === 'excited') {
+        ctx.fillStyle = '#f8e828';
+        [[1,1],[12,1],[0,6],[13,6]].forEach(([sx,sy]) => {
+          ctx.fillRect(sx*S+1, sy*S,   4, 1);
+          ctx.fillRect(sx*S+1, sy*S+4, 4, 1);
+          ctx.fillRect(sx*S,   sy*S+2, 6, 1);
         });
       }
     }
