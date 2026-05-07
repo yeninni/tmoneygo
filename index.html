@@ -1,0 +1,1499 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>티머니 티티</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --px: 3px;
+        --maple-dark: #0d1117;
+        --maple-bg: #1a1f2e;
+        --maple-panel: #232b3e;
+        --maple-border: #c8922a;
+        --maple-border2: #7a5010;
+        --maple-gold: #f0c040;
+        --maple-yellow: #ffe066;
+        --maple-white: #f0eedc;
+        --maple-red: #e04040;
+        --maple-green: #40c060;
+        --maple-blue: #4080e0;
+        --maple-purple: #9040d0;
+        --exp-color: #f0e020;
+        --hp-color: #e03030;
+        --otter-brown: #8b5e3c;
+        --otter-dark: #5c3a1e;
+        --otter-light: #d4956a;
+        --otter-belly: #f5d9b8;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { height: 100%; }
+
+      body {
+        background: #0a0c14;
+        background-image:
+          repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(255,255,255,0.02) 31px, rgba(255,255,255,0.02) 32px),
+          repeating-linear-gradient(90deg, transparent, transparent 31px, rgba(255,255,255,0.02) 31px, rgba(255,255,255,0.02) 32px);
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+        padding: 20px;
+        font-family: 'DotGothic16', monospace;
+        image-rendering: pixelated;
+      }
+
+      /* ── Phone shell ── */
+      .phone {
+        width: min(100%, 375px);
+        min-height: 780px;
+        background: var(--maple-dark);
+        border: var(--px) solid var(--maple-border);
+        box-shadow:
+          0 0 0 var(--px) var(--maple-border2),
+          0 0 0 calc(var(--px)*2) var(--maple-border),
+          0 0 40px rgba(200,146,42,0.4),
+          inset 0 0 0 var(--px) var(--maple-border2);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ── Top status bar ── */
+      .status-bar {
+        background: var(--maple-dark);
+        border-bottom: var(--px) solid var(--maple-border2);
+        padding: 6px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 8px;
+        color: var(--maple-gold);
+        font-family: 'Press Start 2P', monospace;
+      }
+
+      /* ── Main screen area ── */
+      .screen { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+      .screen::-webkit-scrollbar { display: none; }
+
+      /* ── Section: hidden by default ── */
+      .section { display: none; flex-direction: column; padding: 10px; gap: 8px; }
+      .section.active { display: flex; }
+
+      /* ── MapleStory panel box ── */
+      .maple-box {
+        background: var(--maple-panel);
+        border: var(--px) solid var(--maple-border);
+        box-shadow: inset 0 0 0 var(--px) var(--maple-border2), 3px 3px 0 rgba(0,0,0,0.6);
+        padding: 10px;
+        position: relative;
+      }
+
+      .maple-box-title {
+        font-family: 'Press Start 2P', monospace;
+        font-size: 7px;
+        color: var(--maple-gold);
+        text-shadow: 1px 1px 0 var(--maple-border2);
+        margin-bottom: 8px;
+        letter-spacing: 1px;
+      }
+
+      /* ── Header / HUD ── */
+      .hud {
+        background: var(--maple-dark);
+        border-bottom: calc(var(--px)*2) solid var(--maple-border2);
+        padding: 8px 10px 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .hud-avatar {
+        width: 40px; height: 40px;
+        border: var(--px) solid var(--maple-border);
+        box-shadow: inset 0 0 0 var(--px) var(--maple-border2);
+        background: var(--maple-bg);
+        display: grid; place-items: center;
+        flex-shrink: 0;
+        cursor: pointer;
+      }
+
+      .hud-info { flex: 1; min-width: 0; }
+
+      .hud-name {
+        font-family: 'Press Start 2P', monospace;
+        font-size: 7px;
+        color: var(--maple-white);
+        text-shadow: 1px 1px 0 #000;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .hud-level {
+        font-family: 'Press Start 2P', monospace;
+        font-size: 6px;
+        color: var(--maple-yellow);
+        text-shadow: 1px 1px 0 #000;
+        margin-bottom: 4px;
+      }
+
+      .bar-row { display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+      .bar-label {
+        font-family: 'Press Start 2P', monospace;
+        font-size: 5px;
+        width: 16px;
+        color: var(--maple-gold);
+        flex-shrink: 0;
+      }
+      .bar-track {
+        flex: 1;
+        height: 8px;
+        background: #111;
+        border: 1px solid #333;
+        box-shadow: inset 0 1px 0 rgba(0,0,0,0.5);
+        position: relative;
+        overflow: hidden;
+      }
+      .bar-fill {
+        height: 100%;
+        transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+        position: relative;
+      }
+      .bar-fill::after {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0;
+        height: 3px;
+        background: rgba(255,255,255,0.3);
+      }
+      .bar-exp .bar-fill { background: linear-gradient(90deg, #c0a000, var(--exp-color)); }
+      .bar-hp .bar-fill { background: linear-gradient(90deg, #900, var(--hp-color)); }
+      .bar-val {
+        font-family: 'Press Start 2P', monospace;
+        font-size: 5px;
+        color: var(--maple-white);
+        flex-shrink: 0;
+        min-width: 54px;
+        text-align: right;
+      }
+
+      /* ── Pixel Otter Character ── */
+      .pet-stage {
+        background: var(--maple-bg);
+        border: var(--px) solid var(--maple-border);
+        box-shadow: inset 0 0 0 var(--px) var(--maple-border2), 3px 3px 0 rgba(0,0,0,0.6);
+        min-height: 260px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+      }
+
+      /* Stage background elements */
+      .stage-sky {
+        position: absolute; top: 0; left: 0; right: 0; height: 55%;
+        background: linear-gradient(180deg, #0a0d1a 0%, #1a2040 100%);
+      }
+      .stage-ground {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 45%;
+        background: linear-gradient(180deg, #2a3a2a 0%, #1a2a1a 100%);
+        border-top: var(--px) solid #3a5a3a;
+      }
+      .stage-stars {
+        position: absolute; top: 0; left: 0; right: 0; height: 55%;
+        pointer-events: none;
+      }
+      .star {
+        position: absolute;
+        width: 2px; height: 2px;
+        background: #fff;
+      }
+      .stage-platform {
+        position: absolute;
+        bottom: 42%;
+        left: 50%; transform: translateX(-50%);
+        width: 120px; height: 12px;
+        background: #3a5a3a;
+        border-top: var(--px) solid #5a7a5a;
+        border-bottom: var(--px) solid #1a3a1a;
+      }
+
+      /* Mood bubble */
+      .mood-bubble {
+        position: absolute;
+        top: 10px; right: 10px;
+        background: var(--maple-dark);
+        border: var(--px) solid var(--maple-border);
+        box-shadow: inset 0 0 0 1px var(--maple-border2);
+        padding: 3px 7px;
+        font-size: 8px;
+        color: var(--maple-yellow);
+        font-family: 'DotGothic16', monospace;
+        z-index: 10;
+      }
+
+      /* Pixel otter using box-shadow grid */
+      .otter-wrap {
+        position: relative;
+        z-index: 5;
+        margin-bottom: 4px;
+        cursor: pointer;
+        transition: transform 0.1s;
+        image-rendering: pixelated;
+      }
+      .otter-wrap:active { transform: scale(0.95); }
+
+      /* CSS pixel art otter (each "pixel" = 6px) */
+      .pixel-sprite {
+        display: grid;
+        gap: 0;
+      }
+
+      .otter-sprite {
+        display: inline-block;
+        image-rendering: pixelated;
+        /* 14-wide × 20-tall grid @ 6px per pixel */
+        width: 84px;
+        height: 120px;
+        position: relative;
+      }
+
+      .otter-sprite .px {
+        position: absolute;
+        width: 6px; height: 6px;
+      }
+
+      /* Speech bubble */
+      .speech-bubble {
+        position: absolute;
+        top: 10px; left: 10px;
+        background: var(--maple-white);
+        border: var(--px) solid var(--maple-border2);
+        box-shadow: 2px 2px 0 #000;
+        padding: 4px 8px;
+        font-size: 9px;
+        color: #222;
+        max-width: 140px;
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+      }
+      .speech-bubble.show { opacity: 1; }
+      .speech-bubble::after {
+        content: '';
+        position: absolute;
+        bottom: -7px; left: 10px;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 7px solid var(--maple-border2);
+      }
+
+      /* ── Buttons ── */
+      .maple-btn {
+        font-family: 'DotGothic16', monospace;
+        font-size: 12px;
+        color: var(--maple-white);
+        background: var(--maple-panel);
+        border: var(--px) solid var(--maple-border);
+        box-shadow: inset 0 0 0 1px var(--maple-border2), 3px 3px 0 rgba(0,0,0,0.7);
+        padding: 8px 14px;
+        cursor: pointer;
+        text-align: center;
+        transition: transform 0.07s, box-shadow 0.07s, background 0.1s;
+        user-select: none;
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .maple-btn:hover { background: #2e3a52; }
+      .maple-btn:active {
+        transform: translate(2px, 2px);
+        box-shadow: inset 0 0 0 1px var(--maple-border2), 1px 1px 0 rgba(0,0,0,0.7);
+      }
+      .maple-btn.primary {
+        background: linear-gradient(180deg, #3a5a2a 0%, #1e3a14 100%);
+        border-color: #6a9a3a;
+        box-shadow: inset 0 0 0 1px #2a4a1a, 3px 3px 0 rgba(0,0,0,0.7);
+      }
+      .maple-btn.primary:hover { background: linear-gradient(180deg, #4a6a3a 0%, #2a4a20 100%); }
+      .maple-btn.danger {
+        background: linear-gradient(180deg, #5a1a1a 0%, #3a1010 100%);
+        border-color: #c04040;
+        box-shadow: inset 0 0 0 1px #7a2020, 3px 3px 0 rgba(0,0,0,0.7);
+      }
+      .maple-btn.gold {
+        background: linear-gradient(180deg, #5a4010 0%, #3a2808 100%);
+        border-color: var(--maple-gold);
+        color: var(--maple-yellow);
+        box-shadow: inset 0 0 0 1px var(--maple-border2), 3px 3px 0 rgba(0,0,0,0.7);
+      }
+      .maple-btn:disabled {
+        opacity: 0.4; cursor: not-allowed;
+        transform: none !important;
+        box-shadow: inset 0 0 0 1px var(--maple-border2), 3px 3px 0 rgba(0,0,0,0.7) !important;
+      }
+
+      .btn-row { display: flex; gap: 8px; }
+      .btn-row .maple-btn { flex: 1; }
+
+      /* ── Metric cards ── */
+      .metric-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+      .metric-card {
+        background: var(--maple-dark);
+        border: var(--px) solid var(--maple-border2);
+        padding: 8px;
+        display: flex; flex-direction: column; gap: 4px;
+      }
+      .metric-label {
+        font-size: 8px;
+        color: #8899aa;
+        font-family: 'Press Start 2P', monospace;
+      }
+      .metric-value {
+        font-size: 12px;
+        color: var(--maple-white);
+      }
+
+      /* ── Reward items ── */
+      .reward-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+      }
+      .reward-item {
+        background: var(--maple-dark);
+        border: var(--px) solid #444;
+        aspect-ratio: 1;
+        display: grid; place-items: center;
+        cursor: pointer;
+        position: relative;
+        font-size: 20px;
+        transition: border-color 0.1s;
+      }
+      .reward-item.owned { border-color: var(--maple-border); }
+      .reward-item.new-item { border-color: var(--maple-green); animation: glow-green 1s infinite alternate; }
+      .reward-item .item-level {
+        position: absolute; bottom: 2px; right: 2px;
+        font-size: 5px;
+        font-family: 'Press Start 2P', monospace;
+        color: var(--maple-gold);
+      }
+      .reward-item .item-locked {
+        position: absolute; inset: 0;
+        background: rgba(0,0,0,0.6);
+        display: grid; place-items: center;
+        font-size: 14px; color: #666;
+      }
+
+      @keyframes glow-green {
+        from { box-shadow: 0 0 4px #40c060; }
+        to   { box-shadow: 0 0 12px #40c060, 0 0 20px #40c060; }
+      }
+
+      /* ── Alert toggle ── */
+      .alert-toggle-row {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 4px 0;
+        border-bottom: 1px solid #2a3040;
+      }
+      .alert-toggle-label { font-size: 11px; color: var(--maple-white); }
+      .toggle {
+        width: 36px; height: 18px;
+        background: #333; border: 1px solid #555;
+        border-radius: 0; position: relative; cursor: pointer;
+        transition: background 0.2s;
+      }
+      .toggle.on { background: var(--maple-green); border-color: #3a9a50; }
+      .toggle::after {
+        content: '';
+        position: absolute; top: 2px; left: 2px;
+        width: 12px; height: 12px;
+        background: var(--maple-white);
+        transition: left 0.2s;
+      }
+      .toggle.on::after { left: 20px; }
+
+      /* ── Bottom navigation ── */
+      .bottom-nav {
+        background: var(--maple-dark);
+        border-top: calc(var(--px)*2) solid var(--maple-border);
+        box-shadow: 0 -1px 0 var(--maple-border2);
+        display: flex;
+        flex-shrink: 0;
+      }
+      .nav-btn {
+        flex: 1;
+        padding: 8px 4px 6px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        display: flex; flex-direction: column; align-items: center; gap: 3px;
+        font-family: 'DotGothic16', monospace;
+        font-size: 8px;
+        color: #667788;
+        transition: color 0.1s, background 0.1s;
+        border-right: 1px solid #1a2030;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .nav-btn:last-child { border-right: none; }
+      .nav-btn.active { color: var(--maple-gold); background: rgba(200,146,42,0.08); }
+      .nav-btn .nav-icon { font-size: 18px; line-height: 1; }
+
+      /* ── Popup overlay ── */
+      .popup-overlay {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.75);
+        display: none; place-items: center;
+        z-index: 100;
+        padding: 20px;
+      }
+      .popup-overlay.show { display: grid; }
+
+      .popup {
+        background: var(--maple-panel);
+        border: calc(var(--px)*2) solid var(--maple-border);
+        box-shadow:
+          0 0 0 var(--px) var(--maple-border2),
+          0 0 30px rgba(200,146,42,0.5),
+          inset 0 0 0 1px var(--maple-border2);
+        width: min(100%, 320px);
+        padding: 0;
+        animation: popup-in 0.2s ease-out;
+      }
+      @keyframes popup-in {
+        from { transform: scale(0.8); opacity: 0; }
+        to   { transform: scale(1); opacity: 1; }
+      }
+      .popup-header {
+        background: linear-gradient(180deg, #3a2808 0%, #1e1804 100%);
+        border-bottom: var(--px) solid var(--maple-border2);
+        padding: 8px 12px;
+        font-family: 'Press Start 2P', monospace;
+        font-size: 8px;
+        color: var(--maple-gold);
+        text-align: center;
+        letter-spacing: 2px;
+      }
+      .popup-body { padding: 16px; }
+      .popup-footer {
+        padding: 0 16px 16px;
+        display: flex; gap: 8px;
+      }
+
+      /* ── Level up animation ── */
+      .levelup-fx {
+        position: fixed; inset: 0;
+        pointer-events: none; z-index: 200;
+        display: none;
+        overflow: hidden;
+      }
+      .levelup-fx.show { display: block; }
+      .levelup-fx .star-particle {
+        position: absolute;
+        width: 6px; height: 6px;
+        background: var(--maple-gold);
+        animation: star-fall 1s ease-in forwards;
+      }
+      @keyframes star-fall {
+        0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(120vh) rotate(360deg); opacity: 0; }
+      }
+
+      .levelup-text {
+        position: fixed; top: 30%; left: 50%; transform: translateX(-50%);
+        font-family: 'Press Start 2P', monospace;
+        font-size: 18px;
+        color: var(--maple-gold);
+        text-shadow: 0 0 20px var(--maple-gold), 2px 2px 0 #000;
+        white-space: nowrap;
+        z-index: 201;
+        display: none;
+        animation: levelup-bounce 0.5s ease-out;
+        pointer-events: none;
+      }
+      .levelup-text.show { display: block; }
+      @keyframes levelup-bounce {
+        0%   { transform: translateX(-50%) scale(0.3); opacity: 0; }
+        60%  { transform: translateX(-50%) scale(1.2); }
+        100% { transform: translateX(-50%) scale(1); opacity: 1; }
+      }
+
+      /* EXP gain float */
+      .exp-float {
+        position: fixed;
+        font-family: 'Press Start 2P', monospace;
+        font-size: 9px;
+        color: var(--exp-color);
+        text-shadow: 1px 1px 0 #000;
+        pointer-events: none; z-index: 150;
+        animation: exp-rise 1.5s ease-out forwards;
+      }
+      @keyframes exp-rise {
+        0%   { transform: translateY(0); opacity: 1; }
+        100% { transform: translateY(-80px); opacity: 0; }
+      }
+
+      /* ── Transit simulation panel ── */
+      .transit-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+      .transit-card {
+        background: var(--maple-dark);
+        border: var(--px) solid #334;
+        padding: 10px 8px;
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        cursor: pointer;
+        transition: border-color 0.1s, background 0.1s;
+      }
+      .transit-card:hover { border-color: var(--maple-border); background: #1e2230; }
+      .transit-card.selected { border-color: var(--maple-green); background: #1a2a1a; }
+      .transit-card .tc-icon { font-size: 22px; }
+      .transit-card .tc-name { font-size: 10px; color: var(--maple-white); }
+      .transit-card .tc-exp { font-size: 8px; color: var(--maple-gold); font-family: 'Press Start 2P', monospace; }
+
+      /* ── Notification badge ── */
+      .nav-badge {
+        position: absolute; top: 2px; right: 4px;
+        background: var(--maple-red);
+        color: #fff;
+        font-family: 'Press Start 2P', monospace;
+        font-size: 5px;
+        padding: 1px 3px;
+        min-width: 12px; text-align: center;
+        display: none;
+      }
+      .nav-btn { position: relative; }
+      .nav-badge.show { display: block; }
+
+      /* ── Scrollbar-free inner ── */
+      .inner-scroll { overflow-y: auto; scrollbar-width: none; }
+      .inner-scroll::-webkit-scrollbar { display: none; }
+
+      /* ── Text styles ── */
+      .txt-gold { color: var(--maple-gold); }
+      .txt-green { color: var(--maple-green); }
+      .txt-red { color: var(--maple-red); }
+      .txt-white { color: var(--maple-white); }
+      .txt-dim { color: #667788; }
+      .txt-yellow { color: var(--maple-yellow); }
+      .txt-center { text-align: center; }
+      .txt-pixel { font-family: 'Press Start 2P', monospace; }
+      .gap4 { display: flex; flex-direction: column; gap: 4px; }
+      .gap8 { display: flex; flex-direction: column; gap: 8px; }
+      .divider { border: none; border-top: 1px solid #2a3040; margin: 4px 0; }
+
+      /* ── Shimmer on new reward ── */
+      @keyframes shimmer {
+        0%, 100% { background-position: -200% 0; }
+        50%       { background-position: 200% 0; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- ── Star particles overlay ── -->
+    <div class="levelup-fx" id="levelupFx"></div>
+    <div class="levelup-text" id="levelupText">LEVEL UP!</div>
+
+    <!-- ── Level-up popup ── -->
+    <div class="popup-overlay" id="levelupPopup">
+      <div class="popup">
+        <div class="popup-header">✦ LEVEL UP! ✦</div>
+        <div class="popup-body gap8 txt-center">
+          <div class="txt-pixel txt-gold" style="font-size:11px" id="popupLevelText">LV 4 달성!</div>
+          <div style="font-size:26px" id="popupRewardIcon">🍃</div>
+          <div class="txt-pixel txt-yellow" style="font-size:8px" id="popupRewardName">잎사귀 모자 획득!</div>
+          <div style="font-size:10px; color:#8899aa">아이템이 보상함에 추가됐어요</div>
+        </div>
+        <div class="popup-footer">
+          <button class="maple-btn primary" style="flex:1" onclick="closeLevelupPopup()">확인!</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Transit result popup ── -->
+    <div class="popup-overlay" id="transitPopup">
+      <div class="popup">
+        <div class="popup-header">🚇 이동 완료!</div>
+        <div class="popup-body gap8">
+          <div id="transitResult" class="gap4"></div>
+        </div>
+        <div class="popup-footer">
+          <button class="maple-btn primary" style="flex:1" onclick="closeTransitPopup()">티티에게 전달!</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Phone ── -->
+    <div class="phone">
+
+      <!-- Status bar -->
+      <div class="status-bar">
+        <span>티머니 티티</span>
+        <span id="statusDate"></span>
+      </div>
+
+      <!-- HUD (always visible) -->
+      <div class="hud">
+        <div class="hud-avatar" onclick="showSection('pet')" title="펫 보기">
+          <svg width="28" height="28" viewBox="0 0 28 28" style="image-rendering:pixelated">
+            <!-- Pixel otter mini sprite -->
+            <rect x="10" y="4" width="8" height="2" fill="#8b5e3c"/>
+            <rect x="8" y="6" width="12" height="8" fill="#8b5e3c"/>
+            <rect x="10" y="7" width="8" height="5" fill="#d4956a"/>
+            <rect x="9" y="8" width="2" height="2" fill="#1a0f0a"/>
+            <rect x="17" y="8" width="2" height="2" fill="#1a0f0a"/>
+            <rect x="12" y="10" width="4" height="2" fill="#5c3a1e"/>
+            <rect x="7" y="14" width="14" height="10" fill="#8b5e3c"/>
+            <rect x="9" y="15" width="10" height="8" fill="#f5d9b8"/>
+            <rect x="4" y="6" width="4" height="3" fill="#8b5e3c"/>
+            <rect x="20" y="6" width="4" height="3" fill="#8b5e3c"/>
+          </svg>
+        </div>
+        <div class="hud-info">
+          <div class="hud-name">🦦 티티 <span class="txt-dim" style="font-size:6px" id="hudMood"></span></div>
+          <div class="hud-level" id="hudLevel">LV 3</div>
+          <div class="bar-row bar-exp">
+            <span class="bar-label txt-pixel" style="font-size:5px;color:#c8a020">EXP</span>
+            <div class="bar-track"><div class="bar-fill" id="expBar" style="width:36%"></div></div>
+            <span class="bar-val" id="expVal">86/240</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <button class="maple-btn gold" style="padding:5px 8px;font-size:9px" onclick="showSection('transit')">🚇 탑승</button>
+        </div>
+      </div>
+
+      <!-- Main screen -->
+      <div class="screen">
+
+        <!-- ══ HOME ══ -->
+        <div class="section active" id="sec-home">
+          <!-- Pet stage -->
+          <div class="pet-stage" id="petStage">
+            <div class="stage-sky"></div>
+            <div class="stage-ground"></div>
+            <div id="stageStars" class="stage-stars"></div>
+            <div class="stage-platform"></div>
+
+            <div class="speech-bubble" id="speechBubble"></div>
+            <div class="mood-bubble" id="moodLabel">기분 좋음</div>
+
+            <!-- CSS pixel otter (clickable) -->
+            <div class="otter-wrap" id="otterWrap" onclick="petInteract()" title="티티를 눌러보세요!">
+              <canvas id="otterCanvas" width="84" height="120" style="image-rendering:pixelated"></canvas>
+            </div>
+          </div>
+
+          <!-- Today summary -->
+          <div class="maple-box">
+            <div class="maple-box-title">📊 오늘의 이동 기록</div>
+            <div class="metric-grid" id="summaryGrid">
+              <div class="metric-card"><span class="metric-label">탑승</span><span class="metric-value" id="sumRide">0회</span></div>
+              <div class="metric-card"><span class="metric-label">이동</span><span class="metric-value" id="sumStation">0개 정거장</span></div>
+              <div class="metric-card"><span class="metric-label">환승</span><span class="metric-value" id="sumTransfer">0회</span></div>
+              <div class="metric-card"><span class="metric-label">신규 방문</span><span class="metric-value" id="sumNew">0곳</span></div>
+            </div>
+            <div style="margin-top:8px;text-align:right">
+              <span class="txt-pixel txt-gold" style="font-size:9px">오늘 획득 EXP: </span>
+              <span class="txt-pixel txt-yellow" style="font-size:9px" id="todayExp">+0 EXP</span>
+            </div>
+          </div>
+
+          <!-- Quick actions -->
+          <div class="btn-row">
+            <button class="maple-btn primary" onclick="showSection('transit')">🚇 탑승 시뮬레이션</button>
+            <button class="maple-btn" onclick="showSection('reward')">🎁 보상함</button>
+          </div>
+        </div>
+
+        <!-- ══ PET ROOM ══ -->
+        <div class="section" id="sec-pet">
+          <div class="maple-box">
+            <div class="maple-box-title">🦦 티티 정보</div>
+            <div class="gap8">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div class="gap4">
+                  <div class="txt-pixel txt-gold" style="font-size:9px" id="petLevelBig">LV 3</div>
+                  <div style="font-size:10px; color:#8899aa">총 EXP: <span class="txt-white" id="petTotalExp">0</span></div>
+                </div>
+                <div style="font-size:48px; cursor:pointer" onclick="petInteract()">🦦</div>
+              </div>
+              <div class="bar-row bar-exp" style="gap:6px">
+                <span class="bar-label txt-pixel" style="font-size:5px;color:#c8a020;width:auto">EXP</span>
+                <div class="bar-track" style="flex:1"><div class="bar-fill" id="expBar2" style="width:36%"></div></div>
+                <span class="txt-pixel" style="font-size:7px;color:var(--maple-white)" id="expVal2">86/240</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="maple-box">
+            <div class="maple-box-title">💬 티티의 한마디</div>
+            <div id="titiDialog" style="font-size:12px;color:var(--maple-white);padding:4px;line-height:1.5">안녕! 오늘도 대중교통 탔어? 🚇</div>
+          </div>
+
+          <div class="maple-box">
+            <div class="maple-box-title">📈 성장 기록</div>
+            <div class="gap4">
+              <div class="alert-toggle-row">
+                <span class="alert-toggle-label">방문한 정거장 수</span>
+                <span class="txt-pixel txt-gold" style="font-size:8px" id="stationCount">0곳</span>
+              </div>
+              <div class="alert-toggle-row">
+                <span class="alert-toggle-label">총 탑승 횟수</span>
+                <span class="txt-pixel txt-gold" style="font-size:8px" id="totalRides">0회</span>
+              </div>
+              <div class="alert-toggle-row">
+                <span class="alert-toggle-label">총 환승 횟수</span>
+                <span class="txt-pixel txt-gold" style="font-size:8px" id="totalTransfers">0회</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="maple-btn primary" onclick="showSection('transit')">🚇 탑승하고 EXP 획득!</button>
+        </div>
+
+        <!-- ══ TRANSIT ══ -->
+        <div class="section" id="sec-transit">
+          <div class="maple-box">
+            <div class="maple-box-title">🚇 탑승 시뮬레이션</div>
+            <div style="font-size:10px;color:#8899aa;margin-bottom:8px">어떤 교통수단을 이용했나요?</div>
+            <div class="transit-options" id="transitOptions">
+              <div class="transit-card selected" data-type="subway" data-exp="80" data-stations="12" onclick="selectTransit(this)">
+                <span class="tc-icon">🚇</span>
+                <span class="tc-name">지하철</span>
+                <span class="tc-exp">+80 EXP</span>
+              </div>
+              <div class="transit-card" data-type="bus" data-exp="50" data-stations="8" onclick="selectTransit(this)">
+                <span class="tc-icon">🚌</span>
+                <span class="tc-name">버스</span>
+                <span class="tc-exp">+50 EXP</span>
+              </div>
+              <div class="transit-card" data-type="transfer" data-exp="120" data-stations="18" onclick="selectTransit(this)">
+                <span class="tc-icon">🔄</span>
+                <span class="tc-name">환승 이동</span>
+                <span class="tc-exp">+120 EXP</span>
+              </div>
+              <div class="transit-card" data-type="new" data-exp="150" data-stations="10" onclick="selectTransit(this)">
+                <span class="tc-icon">🗺️</span>
+                <span class="tc-name">신규 노선</span>
+                <span class="tc-exp">+150 EXP</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="maple-box" id="transitPreview">
+            <div class="maple-box-title">📋 예상 보상</div>
+            <div class="gap4" id="transitPreviewBody">
+              <div class="alert-toggle-row">
+                <span class="alert-toggle-label">기본 EXP</span>
+                <span class="txt-pixel txt-gold" style="font-size:8px" id="prevBase">+40 EXP</span>
+              </div>
+              <div class="alert-toggle-row">
+                <span class="alert-toggle-label">정거장 보너스</span>
+                <span class="txt-pixel txt-green" style="font-size:8px" id="prevStation">+24 EXP</span>
+              </div>
+              <div class="alert-toggle-row">
+                <span class="alert-toggle-label">환승 보너스</span>
+                <span class="txt-pixel txt-green" style="font-size:8px" id="prevTransfer">+0 EXP</span>
+              </div>
+              <div class="alert-toggle-row">
+                <span class="alert-toggle-label">신규 정거장 보너스</span>
+                <span class="txt-pixel txt-green" style="font-size:8px" id="prevNew">+0 EXP</span>
+              </div>
+              <hr class="divider"/>
+              <div class="alert-toggle-row">
+                <span class="alert-toggle-label txt-pixel" style="font-size:8px">합계</span>
+                <span class="txt-pixel txt-yellow" style="font-size:10px" id="prevTotal">+80 EXP</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="maple-btn primary" style="font-size:13px;padding:12px" id="boardBtn" onclick="doBoard()">
+            🚇 탑승 완료!
+          </button>
+        </div>
+
+        <!-- ══ REWARD ══ -->
+        <div class="section" id="sec-reward">
+          <div class="maple-box">
+            <div class="maple-box-title">🎁 레벨업 보상함</div>
+            <div class="reward-grid" id="rewardGrid"></div>
+          </div>
+
+          <div class="maple-box">
+            <div class="maple-box-title">📅 다음 보상 예고</div>
+            <div class="gap4" id="nextRewardPreview"></div>
+          </div>
+        </div>
+
+        <!-- ══ ALERT ══ -->
+        <div class="section" id="sec-alert">
+          <div class="maple-box">
+            <div class="maple-box-title">🔔 Zero-Click 하차 알림</div>
+            <div style="font-size:10px;color:#8899aa;margin-bottom:8px;line-height:1.6">
+              목적지에 가까워지면 자동으로 알려줘요.<br>앱을 켜지 않아도 됩니다!
+            </div>
+            <div class="gap8">
+              <div class="alert-toggle-row">
+                <span class="alert-toggle-label">하차 알림 사용</span>
+                <div class="toggle on" id="toggleAlert" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="alert-toggle-row">
+                <span class="alert-toggle-label">백그라운드 위치</span>
+                <div class="toggle on" id="toggleLocation" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="alert-toggle-row">
+                <span class="alert-toggle-label">진동 알림</span>
+                <div class="toggle" id="toggleVibrate" onclick="this.classList.toggle('on')"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="maple-box">
+            <div class="maple-box-title">🗺️ 예측 현황</div>
+            <div class="gap4">
+              <div class="alert-toggle-row">
+                <span class="alert-toggle-label">예측 정확도</span>
+                <span class="txt-pixel txt-green" style="font-size:8px">87%</span>
+              </div>
+              <div class="alert-toggle-row">
+                <span class="alert-toggle-label">이번 주 알림 발송</span>
+                <span class="txt-pixel txt-gold" style="font-size:8px" id="alertCount">0회</span>
+              </div>
+              <div class="alert-toggle-row">
+                <span class="alert-toggle-label">오탐 횟수</span>
+                <span class="txt-pixel txt-red" style="font-size:8px">0회</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="maple-box">
+            <div class="maple-box-title">🔔 알림 시뮬레이션</div>
+            <div style="font-size:10px;color:#8899aa;margin-bottom:8px">목적지 도착 알림을 미리 체험해보세요</div>
+            <button class="maple-btn" onclick="simulateAlert()">📳 하차 알림 테스트</button>
+          </div>
+        </div>
+
+      </div><!-- /screen -->
+
+      <!-- Bottom nav -->
+      <div class="bottom-nav">
+        <button class="nav-btn active" id="nav-home" onclick="showSection('home')">
+          <span class="nav-icon">🏠</span>홈
+        </button>
+        <button class="nav-btn" id="nav-pet" onclick="showSection('pet')">
+          <span class="nav-icon">🦦</span>펫방
+          <span class="nav-badge" id="badge-pet"></span>
+        </button>
+        <button class="nav-btn" id="nav-transit" onclick="showSection('transit')">
+          <span class="nav-icon">🚇</span>탑승
+        </button>
+        <button class="nav-btn" id="nav-reward" onclick="showSection('reward')">
+          <span class="nav-icon">🎁</span>보상
+          <span class="nav-badge" id="badge-reward"></span>
+        </button>
+        <button class="nav-btn" id="nav-alert" onclick="showSection('alert')">
+          <span class="nav-icon">🔔</span>알림
+        </button>
+      </div>
+
+    </div><!-- /phone -->
+
+    <script>
+    // ══════════════════════════════════
+    // Game state
+    // ══════════════════════════════════
+    const MAX_LEVEL = 30;
+    const REWARD_ITEMS = {
+      2: { icon:'🍃', name:'잎사귀 모자' },
+      3: { icon:'🧣', name:'파란 목도리' },
+      5: { icon:'👜', name:'티머니 가방' },
+      8: { icon:'🧥', name:'레인코트' },
+      10:{ icon:'🚇', name:'지하철 방 배경' },
+      15:{ icon:'⭐', name:'별 선글라스' },
+      20:{ icon:'🎖️', name:'선장 유니폼' },
+      30:{ icon:'🥇', name:'황금 티머니카드' },
+    };
+
+    const DIALOGS = {
+      happy:   ['오늘도 대중교통 탔어? 대단해! 🚇', '티머니로 이동하면 내가 강해져! 💪', '같이 다니자~! 🦦'],
+      excited: ['레벨업! 나 더 강해졌어!! ✨', '우왕! 고마워!! 빠빠~ 🎉', '대박! 최고야!! 🌟'],
+      sleepy:  ['으음... 졸려... 💤', '오늘은 좀 쉬고 싶어... 😴', '...zzz...'],
+      normal:  ['오늘 어디 갔어? 🗺️', '나랑 같이 이동하자! 🚌', '오늘의 이동 기록 봤어?'],
+    };
+
+    function getRequiredExp(level) {
+      if (level >= MAX_LEVEL) return 0;
+      return 80 + level * 40 + Math.floor(Math.pow(level, 1.35) * 12);
+    }
+
+    function getLevelFromTotalExp(totalExp) {
+      let level = 1, remaining = Math.max(0, totalExp);
+      while (level < MAX_LEVEL) {
+        const req = getRequiredExp(level);
+        if (remaining < req) return { level, currentExp: remaining, toNext: req - remaining };
+        remaining -= req; level++;
+      }
+      return { level: MAX_LEVEL, currentExp: 0, toNext: 0 };
+    }
+
+    let state = {
+      totalExp: 86 + 80, // Level 3, 86/240 current
+      mood: 'happy',
+      todayRides: 0, todayStations: 0, todayTransfers: 0, todayNewVisits: 0, todayExp: 0,
+      totalRides: 0, totalTransfers: 0,
+      visitedStations: 12,
+      ownedItems: [],
+      newItems: [],
+      alertCount: 0,
+    };
+
+    // Init: place totalExp at correct spot for LV3, 86 current exp
+    (function initState() {
+      let exp = 0;
+      for (let l = 1; l < 3; l++) exp += getRequiredExp(l);
+      state.totalExp = exp + 86;
+    })();
+
+    let selectedTransit = { type:'subway', exp:80, stations:12, transfer:false, newVisit:false };
+
+    // ══════════════════════════════════
+    // Pixel Otter Canvas Renderer (v2 - cute eyes!)
+    // ══════════════════════════════════
+    function drawOtter(mood) {
+      const canvas = document.getElementById('otterCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const S = 6;
+      ctx.clearRect(0, 0, 84, 120);
+
+      // px(x,y,c): fill one S×S grid cell
+      const px = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(x*S, y*S, S, S); };
+      // row(y, xs, c): fill multiple x positions in one row
+      const row = (y, xs, c) => xs.forEach(x => px(x, y, c));
+      // rect(x,y,w,h,c): fill a w×h block
+      const rect = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x*S, y*S, w*S, h*S); };
+
+      // ── Palette ──
+      const BR = '#9a6845';   // body brown
+      const DK = '#4e2a10';   // dark outline
+      const LT = '#c88858';   // light brown
+      const FL = '#f9dfc0';   // face / belly (warm cream)
+      const EW = '#fffff8';   // eye WHITE (very bright)
+      const EP = '#100808';   // eye pupil (very dark)
+      const EH = '#ffffff';   // eye sparkle highlight
+      const MZ = '#f0b090';   // muzzle / snout area
+      const NS = '#3c1408';   // nose
+      const CK = '#f0908a';   // cheek blush (pink)
+      const MO = '#7a2010';   // mouth
+      const TB = '#2258cc';   // tmoney card blue
+      const TG = '#f0c828';   // tmoney card text
+
+      // ── EARS (rows 0-1) ──
+      row(0, [3,4,9,10], BR);
+      row(1, [2,3,4,5,8,9,10,11], BR);
+      row(0, [2,5,8,11], DK);
+      px(3,1,LT); px(10,1,LT); // inner ear light
+
+      // ── HEAD (rows 2-7) ──
+      // Row 2: top of head
+      row(2, [3,4,5,6,7,8,9,10], BR);
+      px(2,2,DK); px(11,2,DK);
+
+      // Rows 3-6: wide head with face patch
+      for (let y = 3; y <= 6; y++) {
+        px(1,y,DK); px(2,y,BR);
+        for (let x = 3; x <= 10; x++) px(x, y, FL);
+        px(11,y,BR); px(12,y,DK);
+      }
+
+      // Row 7: bottom of head / chin
+      px(1,7,DK); px(2,7,BR);
+      row(7, [3,4,5,6,7,8,9,10], BR);
+      px(11,7,BR); px(12,7,DK);
+
+      // ── EYES ──
+      // Each eye: 3×2 white sclera, 1×2 dark pupil in centre, 1×1 highlight top-left
+      // Left eye  (x 3-5, y 3-4)
+      rect(3, 3, 3, 2, EW);
+      px(4,3,EP); px(4,4,EP);
+      px(3,3,EH);   // sparkle
+
+      // Right eye (x 8-10, y 3-4)
+      rect(8, 3, 3, 2, EW);
+      px(9,3,EP); px(9,4,EP);
+      px(8,3,EH);   // sparkle
+
+      // Mood overrides
+      if (mood === 'sleepy') {
+        // half-lid: cover top half of eyes with lid colour
+        row(3, [3,4,5], LT);
+        row(3, [8,9,10], LT);
+        // droopy pupil stays at row 4
+        px(4,4,EP); px(9,4,EP);
+      }
+      if (mood === 'happy') {
+        // arc (^ω^) style: bottom half is eyebrow shape
+        rect(3, 3, 3, 2, EW); // redraw white
+        px(3,3,EH);
+        px(4,3,EP); px(4,4,EP); // normal pupil
+        rect(8, 3, 3, 2, EW);
+        px(8,3,EH);
+        px(9,3,EP); px(9,4,EP);
+        // small blush extra pixel
+        px(2,4,CK); px(11,4,CK);
+      }
+      if (mood === 'excited') {
+        // star pupils - fill most of eye
+        rect(3, 3, 3, 2, EP); px(3,3,EH); px(5,4,EH);
+        rect(8, 3, 3, 2, EP); px(8,3,EH); px(10,4,EH);
+        px(2,4,CK); px(11,4,CK);
+      }
+
+      // ── CHEEK BLUSH ──
+      px(2,5,CK); px(2,6,CK);
+      px(11,5,CK); px(11,6,CK);
+
+      // ── MUZZLE / SNOUT (rows 5-6 centre) ──
+      rect(5, 5, 4, 2, MZ);
+      // Nose (2×1 on top of muzzle)
+      px(6,5,NS); px(7,5,NS);
+
+      // ── MOUTH ──
+      if (mood === 'happy' || mood === 'excited') {
+        // ω-shape happy grin
+        row(7, [5,6,7,8], MO);
+        px(4,6,MO); px(9,6,MO);   // dimple corners up
+      } else if (mood === 'sleepy') {
+        row(7, [6,7], MO);         // tiny drowsy line
+      } else {
+        row(7, [5,6,7,8], MO);    // slight smile
+      }
+
+      // ── BODY (rows 8-14) ──
+      // Row 8: neck/shoulders
+      row(8, [3,4,5,6,7,8,9,10], BR);
+      px(2,8,DK); px(11,8,DK);
+
+      // Rows 9-11: wide body
+      for (let y = 9; y <= 11; y++) {
+        px(1,y,DK); px(2,y,BR);
+        rect(3, y, 8, 1, FL);
+        px(11,y,BR); px(12,y,DK);
+      }
+      // Rows 12-13: body narrows
+      for (let y = 12; y <= 13; y++) {
+        px(2,y,DK); px(3,y,BR);
+        rect(4, y, 6, 1, FL);
+        px(10,y,BR); px(11,y,DK);
+      }
+      // Row 14: hips
+      row(14, [3,4,5,6,7,8,9,10], BR);
+      px(2,14,DK); px(11,14,DK);
+
+      // ── ARMS ──
+      px(1,9,BR); px(0,10,BR); px(0,11,BR); px(1,12,LT);
+      px(12,9,BR); px(13,10,BR); px(13,11,BR); px(12,12,LT);
+
+      // ── LEGS & FEET ──
+      px(3,15,BR); px(4,15,BR); px(3,16,DK); px(4,16,DK);
+      px(9,15,BR); px(10,15,BR); px(9,16,DK); px(10,16,DK);
+      // webbed feet
+      row(17, [2,3,4,5], DK);
+      row(17, [8,9,10,11], DK);
+
+      // ── TAIL ──
+      px(12,12,BR); px(13,12,BR);
+      px(12,13,BR); px(13,13,LT);
+      px(11,14,BR);
+
+      // ── TMONEY CARD ──
+      rect(4, 10, 5, 3, TB);
+      ctx.fillStyle = TG;
+      ctx.font = 'bold 9px monospace';
+      ctx.fillText('T', 4*S+5, 12*S+2);
+
+      // ── EXCITED SPARKLES ──
+      if (mood === 'excited') {
+        ctx.fillStyle = '#f8e828';
+        [[1,1],[12,1],[0,6],[13,6]].forEach(([sx,sy]) => {
+          ctx.fillRect(sx*S+1, sy*S,   4, 1);
+          ctx.fillRect(sx*S+1, sy*S+4, 4, 1);
+          ctx.fillRect(sx*S,   sy*S+2, 6, 1);
+        });
+      }
+    }
+
+    // ══════════════════════════════════
+    // UI update
+    // ══════════════════════════════════
+    function updateUI() {
+      const { level, currentExp, toNext } = getLevelFromTotalExp(state.totalExp);
+      const total = currentExp + toNext;
+      const pct = total > 0 ? (currentExp / total * 100).toFixed(1) : 100;
+
+      document.getElementById('hudLevel').textContent = `LV ${level}`;
+      document.getElementById('expBar').style.width = pct + '%';
+      document.getElementById('expVal').textContent = `${currentExp}/${total}`;
+      document.getElementById('hudMood').textContent = moodLabel(state.mood);
+
+      document.getElementById('expBar2').style.width = pct + '%';
+      document.getElementById('expVal2').textContent = `${currentExp}/${total}`;
+      document.getElementById('petLevelBig').textContent = `LV ${level}`;
+      document.getElementById('petTotalExp').textContent = state.totalExp;
+      document.getElementById('moodLabel').textContent = moodLabel(state.mood);
+
+      document.getElementById('sumRide').textContent = state.todayRides + '회';
+      document.getElementById('sumStation').textContent = state.todayStations + '개 정거장';
+      document.getElementById('sumTransfer').textContent = state.todayTransfers + '회';
+      document.getElementById('sumNew').textContent = state.todayNewVisits + '곳';
+      document.getElementById('todayExp').textContent = '+' + state.todayExp + ' EXP';
+
+      document.getElementById('stationCount').textContent = state.visitedStations + '곳';
+      document.getElementById('totalRides').textContent = state.totalRides + '회';
+      document.getElementById('totalTransfers').textContent = state.totalTransfers + '회';
+      document.getElementById('alertCount').textContent = state.alertCount + '회';
+
+      drawOtter(state.mood);
+      updateRewardGrid();
+      updateNextRewardPreview(level);
+
+      const newBadge = state.newItems.length;
+      const badgePet = document.getElementById('badge-pet');
+      const badgeRew = document.getElementById('badge-reward');
+      if (newBadge > 0) {
+        badgeRew.textContent = newBadge;
+        badgeRew.classList.add('show');
+        badgePet.classList.add('show');
+        badgePet.textContent = '!';
+      } else {
+        badgeRew.classList.remove('show');
+        badgePet.classList.remove('show');
+      }
+    }
+
+    function moodLabel(m) {
+      return { happy:'기분 좋음', excited:'신남!', sleepy:'졸림', normal:'평온' }[m] || '평온';
+    }
+
+    // ══════════════════════════════════
+    // Navigation
+    // ══════════════════════════════════
+    function showSection(name) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      const secEl = document.getElementById('sec-' + name);
+      if (secEl) secEl.classList.add('active');
+      const navEl = document.getElementById('nav-' + name);
+      if (navEl) navEl.classList.add('active');
+
+      if (name === 'reward') {
+        state.newItems = [];
+        updateUI();
+      }
+    }
+
+    // ══════════════════════════════════
+    // Transit selection
+    // ══════════════════════════════════
+    const transitDefs = {
+      subway:   { base:40, stationMul:2, transfer:false, newVisit:false },
+      bus:      { base:25, stationMul:1.5, transfer:false, newVisit:false },
+      transfer: { base:40, stationMul:2, transfer:true, newVisit:false },
+      new:      { base:40, stationMul:2, transfer:false, newVisit:true },
+    };
+
+    function selectTransit(el) {
+      document.querySelectorAll('.transit-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      const type = el.dataset.type;
+      const stations = parseInt(el.dataset.stations);
+      const def = transitDefs[type];
+      const base = def.base;
+      const stationExp = Math.round(stations * def.stationMul);
+      const transferExp = def.transfer ? 20 : 0;
+      const newExp = def.newVisit ? 30 : 0;
+      const total = base + stationExp + transferExp + newExp;
+
+      selectedTransit = { type, stations, base, stationExp, transferExp, newExp, total, transfer: def.transfer, newVisit: def.newVisit };
+
+      document.getElementById('prevBase').textContent = '+' + base + ' EXP';
+      document.getElementById('prevStation').textContent = '+' + stationExp + ' EXP';
+      document.getElementById('prevTransfer').textContent = '+' + transferExp + ' EXP';
+      document.getElementById('prevNew').textContent = '+' + newExp + ' EXP';
+      document.getElementById('prevTotal').textContent = '+' + total + ' EXP';
+    }
+
+    // ══════════════════════════════════
+    // Board / transit completion
+    // ══════════════════════════════════
+    function doBoard() {
+      const btn = document.getElementById('boardBtn');
+      btn.disabled = true;
+
+      const prevLevelState = getLevelFromTotalExp(state.totalExp);
+      const prevLevel = prevLevelState.level;
+
+      const gained = selectedTransit.total || 80;
+      state.totalExp += gained;
+      state.todayExp += gained;
+      state.todayRides++;
+      state.todayStations += selectedTransit.stations || 12;
+      if (selectedTransit.transfer) { state.todayTransfers++; state.totalTransfers++; }
+      if (selectedTransit.newVisit) { state.todayNewVisits++; state.visitedStations++; }
+      state.totalRides++;
+      state.alertCount++;
+
+      const newLevelState = getLevelFromTotalExp(state.totalExp);
+      const newLevel = newLevelState.level;
+
+      // Show transit result popup
+      const resultEl = document.getElementById('transitResult');
+      resultEl.innerHTML = `
+        <div class="alert-toggle-row"><span class="alert-toggle-label">기본 EXP</span><span class="txt-pixel txt-gold" style="font-size:8px">+${selectedTransit.base} EXP</span></div>
+        <div class="alert-toggle-row"><span class="alert-toggle-label">정거장 보너스</span><span class="txt-pixel txt-green" style="font-size:8px">+${selectedTransit.stationExp} EXP</span></div>
+        <div class="alert-toggle-row"><span class="alert-toggle-label">환승 보너스</span><span class="txt-pixel txt-green" style="font-size:8px">+${selectedTransit.transferExp} EXP</span></div>
+        <div class="alert-toggle-row"><span class="alert-toggle-label">신규 정거장</span><span class="txt-pixel txt-green" style="font-size:8px">+${selectedTransit.newExp} EXP</span></div>
+        <hr class="divider"/>
+        <div class="alert-toggle-row"><span class="alert-toggle-label txt-pixel" style="font-size:8px">획득 EXP</span><span class="txt-pixel txt-yellow" style="font-size:11px">+${gained} EXP</span></div>
+      `;
+
+      state.mood = 'happy';
+      if (newLevel > prevLevel) {
+        state.mood = 'excited';
+        // Collect level-up rewards
+        for (let l = prevLevel + 1; l <= newLevel; l++) {
+          if (REWARD_ITEMS[l]) {
+            state.ownedItems.push(l);
+            state.newItems.push(l);
+          }
+        }
+      }
+
+      updateUI();
+      document.getElementById('transitPopup').classList.add('show');
+      showExpFloat(gained);
+
+      // Check level up after popup close
+      if (newLevel > prevLevel) {
+        setTimeout(() => {
+          triggerLevelUp(newLevel, prevLevel);
+        }, 800);
+      }
+    }
+
+    function closeTransitPopup() {
+      document.getElementById('transitPopup').classList.remove('show');
+      document.getElementById('boardBtn').disabled = false;
+      showSection('home');
+    }
+
+    // ══════════════════════════════════
+    // Level up effects
+    // ══════════════════════════════════
+    function triggerLevelUp(newLevel, prevLevel) {
+      // Particle shower
+      const fx = document.getElementById('levelupFx');
+      fx.innerHTML = '';
+      for (let i = 0; i < 40; i++) {
+        const s = document.createElement('div');
+        s.className = 'star-particle';
+        s.style.left = (Math.random() * 100) + '%';
+        s.style.animationDelay = (Math.random() * 0.8) + 's';
+        s.style.background = ['#f0c040','#f0e020','#40c060','#4080e0','#e04040','#d040d0'][Math.floor(Math.random()*6)];
+        s.style.width = s.style.height = (Math.random() * 8 + 3) + 'px';
+        fx.appendChild(s);
+      }
+      fx.classList.add('show');
+
+      const txt = document.getElementById('levelupText');
+      txt.textContent = `LEVEL UP! LV ${newLevel}`;
+      txt.classList.add('show');
+
+      // Show reward popup
+      const reward = REWARD_ITEMS[newLevel];
+      if (reward) {
+        document.getElementById('popupLevelText').textContent = `LV ${newLevel} 달성!`;
+        document.getElementById('popupRewardIcon').textContent = reward.icon;
+        document.getElementById('popupRewardName').textContent = reward.name + ' 획득!';
+        setTimeout(() => {
+          document.getElementById('levelupPopup').classList.add('show');
+        }, 1200);
+      }
+
+      setTimeout(() => {
+        fx.classList.remove('show');
+        txt.classList.remove('show');
+      }, 2000);
+    }
+
+    function closeLevelupPopup() {
+      document.getElementById('levelupPopup').classList.remove('show');
+    }
+
+    // ══════════════════════════════════
+    // EXP float
+    // ══════════════════════════════════
+    function showExpFloat(exp) {
+      const el = document.createElement('div');
+      el.className = 'exp-float';
+      el.textContent = '+' + exp + ' EXP';
+      const phone = document.querySelector('.phone');
+      const rect = phone.getBoundingClientRect();
+      el.style.left = (rect.left + rect.width / 2 - 30) + 'px';
+      el.style.top = (rect.top + rect.height * 0.4) + 'px';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1500);
+    }
+
+    // ══════════════════════════════════
+    // Pet interaction
+    // ══════════════════════════════════
+    const petDialogs = [
+      '오늘도 파이팅! 🚇',
+      '같이 이동하자~ 🦦',
+      '티머니 최고야! ✨',
+      '다음 역까지 같이 가자! 🗺️',
+      '탑승 완료~ 경험치 획득! 💪',
+    ];
+    let dialogIdx = 0;
+
+    function petInteract() {
+      const moods = ['happy','excited','normal','sleepy'];
+      state.mood = moods[Math.floor(Math.random() * moods.length)];
+      drawOtter(state.mood);
+      document.getElementById('moodLabel').textContent = moodLabel(state.mood);
+
+      const bubble = document.getElementById('speechBubble');
+      const dialogs = DIALOGS[state.mood];
+      bubble.textContent = dialogs[Math.floor(Math.random() * dialogs.length)];
+      bubble.classList.add('show');
+      setTimeout(() => bubble.classList.remove('show'), 2500);
+
+      // Shake animation
+      const wrap = document.getElementById('otterWrap');
+      wrap.style.animation = 'none';
+      wrap.style.transform = 'rotate(-5deg)';
+      setTimeout(() => { wrap.style.transform = 'rotate(5deg)'; }, 100);
+      setTimeout(() => { wrap.style.transform = ''; }, 200);
+
+      // Update dialog in pet section
+      const dialogs2 = DIALOGS[state.mood];
+      document.getElementById('titiDialog').textContent = dialogs2[Math.floor(Math.random() * dialogs2.length)];
+    }
+
+    // ══════════════════════════════════
+    // Reward grid
+    // ══════════════════════════════════
+    function updateRewardGrid() {
+      const { level } = getLevelFromTotalExp(state.totalExp);
+      const grid = document.getElementById('rewardGrid');
+      grid.innerHTML = '';
+      Object.entries(REWARD_ITEMS).forEach(([lvl, item]) => {
+        const owned = state.ownedItems.includes(parseInt(lvl));
+        const isNew = state.newItems.includes(parseInt(lvl));
+        const el = document.createElement('div');
+        el.className = 'reward-item' + (owned ? ' owned' : '') + (isNew ? ' new-item' : '');
+        el.innerHTML = item.icon;
+        el.innerHTML += `<span class="item-level">LV${lvl}</span>`;
+        if (!owned) el.innerHTML += `<div class="item-locked">🔒</div>`;
+        el.title = `LV${lvl}: ${item.name}`;
+        grid.appendChild(el);
+      });
+    }
+
+    function updateNextRewardPreview(level) {
+      const el = document.getElementById('nextRewardPreview');
+      el.innerHTML = '';
+      let count = 0;
+      for (let [lvl, item] of Object.entries(REWARD_ITEMS)) {
+        if (parseInt(lvl) > level && count < 3) {
+          const row = document.createElement('div');
+          row.className = 'alert-toggle-row';
+          row.innerHTML = `<span class="alert-toggle-label">${item.icon} LV${lvl} - ${item.name}</span><span class="txt-pixel txt-dim" style="font-size:7px">미획득</span>`;
+          el.appendChild(row);
+          count++;
+        }
+      }
+      if (count === 0) {
+        el.innerHTML = '<div style="font-size:11px;color:var(--maple-gold);text-align:center">🎉 모든 보상 획득!</div>';
+      }
+    }
+
+    // ══════════════════════════════════
+    // Alert simulation
+    // ══════════════════════════════════
+    function simulateAlert() {
+      const stations = ['강남역', '홍대입구역', '여의도역', '신림역', '사당역'];
+      const station = stations[Math.floor(Math.random() * stations.length)];
+      const btn = document.querySelector('.section.active .maple-btn');
+
+      // Temporary notification style
+      const notif = document.createElement('div');
+      notif.style.cssText = `
+        position:fixed; top:20px; left:50%; transform:translateX(-50%);
+        background:var(--maple-panel); border:3px solid var(--maple-border);
+        padding:10px 16px; z-index:300; font-size:11px; color:var(--maple-white);
+        box-shadow:0 0 20px rgba(200,146,42,0.5); max-width:280px; text-align:center;
+        animation: popup-in 0.2s ease-out;
+      `;
+      notif.innerHTML = `🔔 <strong style="color:var(--maple-gold)">${station}</strong> 도착 예정!<br><span style="font-size:9px;color:#8899aa">2분 후 하차 준비하세요</span>`;
+      document.body.appendChild(notif);
+      state.alertCount++;
+      updateUI();
+      setTimeout(() => notif.remove(), 3000);
+    }
+
+    // ══════════════════════════════════
+    // Status bar date
+    // ══════════════════════════════════
+    function updateStatusDate() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2,'0');
+      const m = String(now.getMinutes()).padStart(2,'0');
+      document.getElementById('statusDate').textContent = `${h}:${m}`;
+    }
+
+    // ══════════════════════════════════
+    // Stars in stage background
+    // ══════════════════════════════════
+    function initStars() {
+      const container = document.getElementById('stageStars');
+      for (let i = 0; i < 20; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        s.style.left = (Math.random() * 100) + '%';
+        s.style.top = (Math.random() * 100) + '%';
+        s.style.opacity = (Math.random() * 0.8 + 0.2);
+        s.style.width = s.style.height = (Math.random() > 0.7 ? '3px' : '2px');
+        container.appendChild(s);
+      }
+    }
+
+    // ══════════════════════════════════
+    // Boot
+    // ══════════════════════════════════
+    window.addEventListener('load', () => {
+      initStars();
+      updateStatusDate();
+      setInterval(updateStatusDate, 30000);
+      // Init default selected transit preview
+      selectTransit(document.querySelector('.transit-card.selected'));
+      updateUI();
+    });
+    </script>
+  </body>
+</html>
