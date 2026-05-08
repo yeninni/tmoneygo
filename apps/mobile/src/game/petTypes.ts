@@ -24,6 +24,9 @@ export interface TitiPetState {
   equippedItems: EquippedItems;
   ownedItemIds: string[];
   visitedStationIds: string[];
+  streakDays: number;
+  lastTransitDate?: string;
+  completedChallengeIds: string[];
   lastTransitAt?: string;
   updatedAt: string;
 }
@@ -46,6 +49,8 @@ export interface ExpBreakdown {
   stationExp: number;
   transferBonusExp: number;
   newStationBonusExp: number;
+  offPeakBonusExp: number;
+  streakBonusExp: number;
   totalGainedExp: number;
 }
 
@@ -55,6 +60,21 @@ export interface LevelUpReward {
   reason: 'level_up';
 }
 
+export interface StationChallenge {
+  id: string;
+  name: string;
+  description: string;
+  requiredStationIds: string[];
+  rewardItemId: string;
+}
+
+export interface ChallengeReward {
+  challengeId: string;
+  challengeName: string;
+  itemId: string;
+  reason: 'challenge_complete';
+}
+
 export interface PetExpApplyResult {
   previous: TitiPetState;
   next: TitiPetState;
@@ -62,4 +82,5 @@ export interface PetExpApplyResult {
   leveledUp: boolean;
   gainedLevels: number;
   rewards: LevelUpReward[];
+  challengeRewards: ChallengeReward[];
 }

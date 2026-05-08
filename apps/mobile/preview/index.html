@@ -724,6 +724,87 @@
       .inner-scroll { overflow-y: auto; scrollbar-width: none; }
       .inner-scroll::-webkit-scrollbar { display: none; }
 
+      /* ── T-money 연동 ── */
+      .sync-card-box {
+        background: linear-gradient(135deg, #0d2a4a 0%, #1a3a6a 100%);
+        border: var(--px) solid #4080e0;
+        box-shadow: inset 0 0 0 1px #2050a0, 3px 3px 0 rgba(0,0,0,0.6), 0 0 20px rgba(64,128,224,0.2);
+        padding: 12px;
+        display: flex; align-items: center; gap: 10px;
+      }
+      .sync-card-chip {
+        background: linear-gradient(135deg, #1a5a9a, #2060b0);
+        border: 1px solid #4080e0;
+        border-radius: 4px;
+        width: 48px; height: 32px;
+        display: grid; place-items: center;
+        font-family: 'Press Start 2P', monospace;
+        font-size: 7px;
+        color: #f0c040;
+        flex-shrink: 0;
+      }
+      .sync-card-info { flex: 1; }
+      .sync-card-name { font-family: 'Press Start 2P', monospace; font-size: 6px; color: #4080e0; margin-bottom: 4px; }
+      .sync-card-num { font-size: 11px; color: var(--maple-white); letter-spacing: 2px; }
+
+      .sync-status {
+        font-size: 9px;
+        color: #8899aa;
+        text-align: center;
+        padding: 4px 0;
+      }
+      .sync-status.syncing { color: var(--maple-blue); animation: blink 0.8s infinite; }
+      .sync-status.done { color: var(--maple-green); }
+      @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+      .ride-feed {
+        display: flex; flex-direction: column; gap: 0;
+        max-height: 280px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      .ride-feed::-webkit-scrollbar { display: none; }
+
+      .ride-row {
+        display: flex; align-items: center; gap: 8px;
+        padding: 7px 4px;
+        border-bottom: 1px solid #1e2a3a;
+        opacity: 0;
+        transform: translateX(-8px);
+        transition: opacity 0.3s, transform 0.3s;
+      }
+      .ride-row.show { opacity: 1; transform: translateX(0); }
+      .ride-time { font-family: 'Press Start 2P', monospace; font-size: 5px; color: #667788; flex-shrink: 0; width: 34px; }
+      .ride-route { flex: 1; min-width: 0; }
+      .ride-stations { font-size: 10px; color: var(--maple-white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .ride-line { font-size: 8px; color: #667788; }
+      .ride-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+      .ride-exp { font-family: 'Press Start 2P', monospace; font-size: 6px; color: var(--exp-color); }
+      .badge-offpeak { font-size: 7px; color: var(--maple-green); background: rgba(64,192,96,0.15); padding: 1px 3px; border: 1px solid rgba(64,192,96,0.3); }
+      .badge-transfer { font-size: 7px; color: var(--maple-blue); background: rgba(64,128,224,0.15); padding: 1px 3px; border: 1px solid rgba(64,128,224,0.3); }
+      .badge-new { font-size: 7px; color: var(--maple-purple); background: rgba(144,64,208,0.15); padding: 1px 3px; border: 1px solid rgba(144,64,208,0.3); }
+
+      .sync-date-divider {
+        font-family: 'Press Start 2P', monospace;
+        font-size: 5px;
+        color: #445566;
+        padding: 6px 4px 3px;
+        letter-spacing: 1px;
+      }
+
+      .sync-summary {
+        display: none;
+        flex-direction: column; gap: 6px;
+        padding: 10px;
+        background: var(--maple-dark);
+        border: var(--px) solid var(--maple-border);
+        box-shadow: 0 0 12px rgba(200,146,42,0.2);
+      }
+      .sync-summary.show { display: flex; }
+      .sync-sum-row { display: flex; justify-content: space-between; align-items: center; }
+      .sync-sum-label { font-size: 10px; color: #8899aa; }
+      .sync-sum-val { font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--maple-yellow); }
+
       /* ── Text styles ── */
       .txt-gold { color: var(--maple-gold); }
       .txt-green { color: var(--maple-green); }
@@ -1006,6 +1087,45 @@
           </div>
         </div>
 
+        <!-- ══ SYNC (T-money 연동) ══ -->
+        <div class="section" id="sec-sync">
+          <!-- 카드 정보 -->
+          <div class="sync-card-box">
+            <div class="sync-card-chip">T</div>
+            <div class="sync-card-info">
+              <div class="sync-card-name">티머니 교통카드</div>
+              <div class="sync-card-num">****  ****  ****  3421</div>
+            </div>
+            <div style="font-family:'Press Start 2P',monospace;font-size:6px;color:var(--maple-green)">연결됨</div>
+          </div>
+
+          <!-- 동기화 버튼 -->
+          <button class="maple-btn primary" id="syncBtn" onclick="startSync()" style="font-size:12px;padding:11px">
+            📥 이용 기록 불러오기 (최근 3주)
+          </button>
+          <div class="sync-status" id="syncStatus">티머니 서버에서 승/하차 기록을 가져옵니다</div>
+
+          <!-- 이용 기록 피드 -->
+          <div class="maple-box" id="rideFeedBox" style="display:none;padding:8px">
+            <div class="maple-box-title" style="margin-bottom:4px">📋 승/하차 기록</div>
+            <div class="ride-feed" id="rideFeed"></div>
+          </div>
+
+          <!-- 동기화 결과 요약 -->
+          <div class="sync-summary" id="syncSummary">
+            <div class="maple-box-title">✦ 연동 완료!</div>
+            <div class="sync-sum-row"><span class="sync-sum-label">총 탑승 횟수</span><span class="sync-sum-val" id="sumTotalRides">-</span></div>
+            <div class="sync-sum-row"><span class="sync-sum-label">방문 정거장</span><span class="sync-sum-val" id="sumVisitedStations">-</span></div>
+            <div class="sync-sum-row"><span class="sync-sum-label">획득 EXP</span><span class="sync-sum-val" id="sumTotalExp">-</span></div>
+            <div class="sync-sum-row"><span class="sync-sum-label">비피크 보너스</span><span class="sync-sum-val txt-green" id="sumOffPeak">-</span></div>
+            <div class="sync-sum-row"><span class="sync-sum-label">스트릭 보너스</span><span class="sync-sum-val txt-green" id="sumStreak">-</span></div>
+            <div class="sync-sum-row" style="border-top:1px solid #2a3040;padding-top:6px;margin-top:2px">
+              <span class="sync-sum-label txt-pixel" style="font-size:8px">레벨</span>
+              <span class="sync-sum-val txt-yellow" style="font-size:10px" id="sumLevel">-</span>
+            </div>
+          </div>
+        </div>
+
         <!-- ══ ALERT ══ -->
         <div class="section" id="sec-alert">
           <div class="maple-box">
@@ -1072,8 +1192,8 @@
           <span class="nav-icon">🎁</span>보상
           <span class="nav-badge" id="badge-reward"></span>
         </button>
-        <button class="nav-btn" id="nav-alert" onclick="showSection('alert')">
-          <span class="nav-icon">🔔</span>알림
+        <button class="nav-btn" id="nav-sync" onclick="showSection('sync')">
+          <span class="nav-icon">📡</span>연동
         </button>
       </div>
 
@@ -1673,6 +1793,169 @@
       updateUI();
       setTimeout(() => notif.remove(), 3000);
     }
+
+    // ══════════════════════════════════
+    // T-money 연동 (승/하차 기록 누적)
+    // ══════════════════════════════════
+    const TMONEY_RIDES = [
+      { rideId:'ride_20260421_001', startedAt:'2026-04-21T08:12:00+09:00', endedAt:'2026-04-21T08:44:00+09:00', lineName:'2호선', from:'강남', to:'홍대입구', stations:12, transfer:false, newVisit:true,  fare:1400 },
+      { rideId:'ride_20260421_002', startedAt:'2026-04-21T18:30:00+09:00', endedAt:'2026-04-21T19:05:00+09:00', lineName:'2호선', from:'홍대입구', to:'강남', stations:12, transfer:false, newVisit:false, fare:1400 },
+      { rideId:'ride_20260422_001', startedAt:'2026-04-22T08:05:00+09:00', endedAt:'2026-04-22T08:52:00+09:00', lineName:'2호선', from:'강남', to:'신촌', stations:15, transfer:true,  newVisit:true,  fare:1500 },
+      { rideId:'ride_20260422_002', startedAt:'2026-04-22T19:10:00+09:00', endedAt:'2026-04-22T19:48:00+09:00', lineName:'2호선', from:'신촌', to:'강남', stations:15, transfer:false, newVisit:false, fare:1500 },
+      { rideId:'ride_20260423_001', startedAt:'2026-04-23T06:55:00+09:00', endedAt:'2026-04-23T07:28:00+09:00', lineName:'2호선', from:'강남', to:'사당', stations:5,  transfer:false, newVisit:true,  fare:1400 },
+      { rideId:'ride_20260423_002', startedAt:'2026-04-23T12:10:00+09:00', endedAt:'2026-04-23T12:35:00+09:00', lineName:'4호선', from:'사당', to:'이태원', stations:7,  transfer:false, newVisit:true,  fare:1400 },
+      { rideId:'ride_20260424_001', startedAt:'2026-04-24T08:20:00+09:00', endedAt:'2026-04-24T08:55:00+09:00', lineName:'2호선', from:'강남', to:'홍대입구', stations:12, transfer:false, newVisit:false, fare:1400 },
+      { rideId:'ride_20260425_001', startedAt:'2026-04-25T08:00:00+09:00', endedAt:'2026-04-25T08:50:00+09:00', lineName:'2호선', from:'강남', to:'여의도', stations:18, transfer:true,  newVisit:true,  fare:1600 },
+      { rideId:'ride_20260426_001', startedAt:'2026-04-26T11:00:00+09:00', endedAt:'2026-04-26T11:45:00+09:00', lineName:'2호선', from:'강남', to:'잠실', stations:8,  transfer:false, newVisit:true,  fare:1400 },
+      { rideId:'ride_20260428_001', startedAt:'2026-04-28T08:15:00+09:00', endedAt:'2026-04-28T08:48:00+09:00', lineName:'2호선', from:'강남', to:'홍대입구', stations:12, transfer:false, newVisit:false, fare:1400 },
+      { rideId:'ride_20260429_001', startedAt:'2026-04-29T06:50:00+09:00', endedAt:'2026-04-29T07:25:00+09:00', lineName:'2호선', from:'강남', to:'신도림', stations:14, transfer:false, newVisit:true,  fare:1500 },
+      { rideId:'ride_20260430_001', startedAt:'2026-04-30T08:22:00+09:00', endedAt:'2026-04-30T09:00:00+09:00', lineName:'2호선', from:'강남', to:'홍대입구', stations:12, transfer:false, newVisit:false, fare:1400 },
+      { rideId:'ride_20260502_001', startedAt:'2026-05-02T07:50:00+09:00', endedAt:'2026-05-02T08:45:00+09:00', lineName:'2호선', from:'강남', to:'왕십리', stations:20, transfer:true,  newVisit:true,  fare:1600 },
+      { rideId:'ride_20260507_001', startedAt:'2026-05-07T08:10:00+09:00', endedAt:'2026-05-07T08:44:00+09:00', lineName:'2호선', from:'강남', to:'홍대입구', stations:12, transfer:false, newVisit:false, fare:1400 },
+    ];
+
+    function isPeakHour(isoString) {
+      const h = new Date(isoString).getHours();
+      return (h >= 7 && h < 9) || (h >= 18 && h < 20);
+    }
+
+    function calcRideExp(ride, streakDays) {
+      const stationExp = Math.min(ride.stations * 4, 80);
+      const transferExp = ride.transfer ? 15 : 0;
+      const newStationExp = ride.newVisit ? 25 : 0;
+      const offPeakExp = isPeakHour(ride.startedAt) ? 0 : 20;
+      const streakExp = Math.min((streakDays - 1) * 3, 90);
+      return { stationExp, transferExp, newStationExp, offPeakExp, streakExp,
+        total: 10 + stationExp + transferExp + newStationExp + offPeakExp + streakExp };
+    }
+
+    function formatTime(isoString) {
+      const d = new Date(isoString);
+      return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    }
+
+    function formatDate(isoString) {
+      const d = new Date(isoString);
+      return (d.getMonth()+1) + '/' + d.getDate() + ' (' + ['일','월','화','수','목','금','토'][d.getDay()] + ')';
+    }
+
+    function toDateStr(isoString) { return isoString.slice(0, 10); }
+
+    let syncRunning = false;
+
+    async function startSync() {
+      if (syncRunning) return;
+      syncRunning = true;
+
+      const btn = document.getElementById('syncBtn');
+      const statusEl = document.getElementById('syncStatus');
+      const feedBox = document.getElementById('rideFeedBox');
+      const feed = document.getElementById('rideFeed');
+      const summary = document.getElementById('syncSummary');
+
+      btn.disabled = true;
+      btn.textContent = '📡 연결 중...';
+      statusEl.className = 'sync-status syncing';
+      statusEl.textContent = '티머니 서버에 연결 중...';
+      feed.innerHTML = '';
+      feedBox.style.display = 'none';
+      summary.classList.remove('show');
+
+      await delay(900);
+      statusEl.textContent = '승/하차 기록 수신 중... (14건)';
+      feedBox.style.display = 'block';
+
+      let totalExp = 0;
+      let totalOffPeakBonus = 0;
+      let totalStreakBonus = 0;
+      let visitedCount = 0;
+      let streakDays = 0;
+      let lastDate = undefined;
+      let lastRenderedDate = '';
+
+      for (let i = 0; i < TMONEY_RIDES.length; i++) {
+        const ride = TMONEY_RIDES[i];
+        const rideDate = toDateStr(ride.startedAt);
+
+        // 스트릭 계산
+        if (!lastDate) {
+          streakDays = 1;
+        } else {
+          const diff = Math.round((new Date(rideDate) - new Date(lastDate)) / 86400000);
+          if (diff === 0) { /* same day, no change */ }
+          else if (diff === 1) streakDays++;
+          else streakDays = 1;
+        }
+        if (toDateStr(ride.startedAt) !== lastDate) lastDate = rideDate;
+
+        if (ride.newVisit) visitedCount++;
+
+        const exp = calcRideExp(ride, streakDays);
+        totalExp += exp.total;
+        totalOffPeakBonus += exp.offPeakExp;
+        totalStreakBonus += exp.streakExp;
+
+        // 날짜 구분선
+        if (rideDate !== lastRenderedDate) {
+          const div = document.createElement('div');
+          div.className = 'sync-date-divider';
+          div.textContent = '── ' + formatDate(ride.startedAt) + ' ──';
+          feed.appendChild(div);
+          lastRenderedDate = rideDate;
+        }
+
+        // 탑승 행
+        const row = document.createElement('div');
+        row.className = 'ride-row';
+        const offPeakBadge = exp.offPeakExp > 0 ? `<span class="badge-offpeak">비피크+${exp.offPeakExp}</span>` : '';
+        const transferBadge = exp.transferExp > 0 ? `<span class="badge-transfer">환승+${exp.transferExp}</span>` : '';
+        const newBadge = exp.newStationExp > 0 ? `<span class="badge-new">신규+${exp.newStationExp}</span>` : '';
+        row.innerHTML = `
+          <div class="ride-time">${formatTime(ride.startedAt)}</div>
+          <div class="ride-route">
+            <div class="ride-stations">${ride.from} → ${ride.to}</div>
+            <div class="ride-line">${ride.lineName} · ${ride.stations}정거장</div>
+          </div>
+          <div class="ride-badges">
+            <span class="ride-exp">+${exp.total} EXP</span>
+            ${offPeakBadge}${transferBadge}${newBadge}
+          </div>`;
+        feed.appendChild(row);
+        feed.scrollTop = feed.scrollHeight;
+
+        // 애니메이션 트리거
+        await delay(20);
+        row.classList.add('show');
+
+        // EXP 실시간 반영
+        state.totalExp += exp.total;
+        state.todayExp += exp.total;
+        updateUI();
+
+        await delay(160);
+      }
+
+      // 완료
+      statusEl.className = 'sync-status done';
+      statusEl.textContent = '✓ 동기화 완료';
+      btn.textContent = '✓ 불러오기 완료';
+
+      const { level } = getLevelFromTotalExp(state.totalExp);
+      document.getElementById('sumTotalRides').textContent = TMONEY_RIDES.length + '회';
+      document.getElementById('sumVisitedStations').textContent = (state.visitedStations + visitedCount) + '개 역';
+      document.getElementById('sumTotalExp').textContent = '+' + totalExp + ' EXP';
+      document.getElementById('sumOffPeak').textContent = '+' + totalOffPeakBonus + ' EXP';
+      document.getElementById('sumStreak').textContent = '+' + totalStreakBonus + ' EXP';
+      document.getElementById('sumLevel').textContent = 'LV ' + level;
+      summary.classList.add('show');
+
+      state.visitedStations += visitedCount;
+      state.totalRides += TMONEY_RIDES.length;
+      updateUI();
+      syncRunning = false;
+    }
+
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
     // ══════════════════════════════════
     // Status bar date
